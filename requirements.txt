@@ -1,0 +1,13 @@
+# Protegrity Developer Edition Trial Center - Python Dependencies
+
+# Web Framework
+streamlit>=1.28.0
+
+# HTTP Client
+requests>=2.31.0
+
+# Data Handling
+pandas>=2.1.0
+
+# JSON Processing (standard library, but listing for clarity)
+# json - included in Python standard library
