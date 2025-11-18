@@ -2,7 +2,7 @@
 
 An interactive Streamlit application demonstrating privacy-preserving GenAI workflows using [Protegrity Developer Edition](https://github.com/Protegrity-Developer-Edition/protegrity-developer-edition). This trial center showcases how to integrate data discovery, semantic guardrails, and data protection capabilities into AI/ML pipelines.
 
-![Trial Center UI](assets/trial_center_ui.png)
+<!-- ![Trial Center UI](assets/trial_center_ui.png) -->
 
 ## 🎯 Overview
 
@@ -65,9 +65,12 @@ cd protegrity-developer-edition-trial-center
 The launcher will:
 ✅ Validate Docker and Protegrity services
 ✅ Create and activate Python virtual environment
-✅ Install dependencies
+✅ Check and install **ALL** missing dependencies (including protegrity-developer-python)
+✅ Verify all required packages are installed
 ✅ Check service health
 ✅ Launch Streamlit UI
+
+**No manual package installation needed!** The launcher handles everything automatically.
 
 ### Option 2: Manual Setup
 
@@ -76,12 +79,17 @@ The launcher will:
 python3 -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-# 2. Install dependencies
+# 2. Install ALL dependencies (including protegrity-developer-python)
 pip install -r requirements.txt
 
-# 3. Launch Streamlit
+# 3. Verify installation
+python -c "import protegrity_developer_python, streamlit, requests, pandas; print('✅ All packages installed')"
+
+# 4. Launch Streamlit
 streamlit run app.py
 ```
+
+**Note**: If you skip the virtual environment setup and install directly, ensure you have all packages from `requirements.txt` installed globally.
 
 ## ⚙️ Configuration
 
@@ -138,20 +146,77 @@ protegrity-developer-edition-trial-center/
 ├── pyrightconfig.json             # Python type checking config
 │
 ├── assets/                        # UI images and resources
-│   ├── trial_center_ui.png
-│   ├── protegrity_logo.png
-│   └── workflow_diagram.png
+│   ├── cybersecurity_concept.jpg
+│   ├── protegrity_logo.svg
+│   └── server_room.jpg
 │
 ├── samples/                       # Sample prompts for testing
 │   ├── input_test.txt
-│   ├── prompt_hr_leak.txt
-│   ├── prompt_medical.txt
-│   ├── prompt_financial.txt
-│   └── prompt_jailbreak.txt
+│   ├── sample_approved.txt
+│   ├── sample_data_leakage.txt
+│   ├── sample_malicious.txt
+│   └── sample_offtopic.txt
 │
 └── tests/                         # Unit and integration tests
-    ├── test_pipeline.py
-    └── test_integration.py
+    ├── test_trial_center_forge.py      # Tests for GuardianPromptForge
+    └── test_trial_center_sanitizer.py  # Tests for PromptSanitizer
+```
+
+## 🔧 Troubleshooting
+
+### Package Installation Issues
+
+If you encounter `ModuleNotFoundError` for any package (e.g., `protegrity_developer_python`):
+
+**Best Solution - Use the launcher script:**
+```bash
+# The launcher automatically detects missing packages and installs them
+./launch_trial_center.sh
+```
+The launcher will show you exactly which packages are missing and install them automatically.
+
+**Manual troubleshooting:**
+```bash
+# Activate virtual environment
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Force reinstall all packages
+pip install --force-reinstall -r requirements.txt
+
+# Verify installation
+python -c "import protegrity_developer_python, streamlit, requests, pandas; print('✅ Success')"
+```
+
+### Common Issues
+
+**1. Docker Services Not Running**
+```bash
+# Check if Docker is running
+docker ps
+
+# Start Protegrity Developer Edition services
+cd path/to/protegrity-developer-edition
+docker-compose up -d
+```
+
+**2. Port Already in Use**
+```bash
+# If port 8502 is busy, Streamlit will use the next available port
+# Check the terminal output for the actual URL
+```
+
+**3. Protection Operations Failing**
+- Ensure environment variables are set: `DEV_EDITION_EMAIL`, `DEV_EDITION_PASSWORD`, `DEV_EDITION_API_KEY`
+- Verify credentials at [Protegrity API Playground](https://developer-edition.protegrity.io/)
+- Note: Discovery and Redaction work without credentials
+
+**4. Virtual Environment Issues**
+```bash
+# Remove and recreate virtual environment
+rm -rf .venv
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
 ## 🔗 Links

@@ -9,7 +9,7 @@ from typing import Iterator, List, Optional, Tuple
 import streamlit as st
 
 try:
-    from .trial_center_pipeline import (
+    from trial_center_pipeline import (
         GuardrailConfig,
         GuardrailResult,
         PromptSanitizer,
@@ -22,7 +22,7 @@ except ImportError:  # Executed when run outside package context
 
     PACKAGE_ROOT = Path(__file__).resolve().parent
     sys.path.append(str(PACKAGE_ROOT.parent))
-    from dev_edition_trial_center.trial_center_pipeline import (  # type: ignore  # noqa: E402
+    from trial_center_pipeline import (  # type: ignore  # noqa: E402
         GuardrailConfig,
         GuardrailResult,
         PromptSanitizer,
@@ -316,10 +316,10 @@ sdk_log_level = DEFAULT_SDK_LOG_LEVEL
 
 # Sample prompts configuration
 SAMPLE_PROMPTS = {
-    "Approved": "dev_edition_trial_center/samples/sample_approved.txt",
-    "Data Leakage": "dev_edition_trial_center/samples/sample_data_leakage.txt",
-    "Malicious": "dev_edition_trial_center/samples/sample_malicious.txt",
-    "Off-Topic": "dev_edition_trial_center/samples/sample_offtopic.txt",
+    "Approved": "samples/sample_approved.txt",
+    "Data Leakage": "samples/sample_data_leakage.txt",
+    "Malicious": "samples/sample_malicious.txt",
+    "Off-Topic": "samples/sample_offtopic.txt",
 }
 
 # Initialize prompt in session state if not exists
@@ -403,7 +403,7 @@ with tab_trial:
                 with capture_pipeline_logs(
                     selected_log_level,
                     logger_names=[
-                        "dev_edition_trial_center",
+                        "trial_center_pipeline",
                         "protegrity_developer_python",
                     ],
                 ):

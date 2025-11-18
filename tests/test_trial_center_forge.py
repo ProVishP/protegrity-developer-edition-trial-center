@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from unittest import mock
 
-from dev_edition_trial_center.trial_center_pipeline import (
+from trial_center_pipeline import (
     GuardrailConfig,
     GuardianPromptForge,
     SanitizationConfig,
@@ -24,27 +24,27 @@ def _mock_guardrail_response(score: float = 0.7, outcome: str = "accepted"):
     }
 
 
-@mock.patch("dev_edition_trial_center.trial_center_pipeline.protegrity.configure")
+@mock.patch("trial_center_pipeline.protegrity.configure")
 @mock.patch(
-    "dev_edition_trial_center.trial_center_pipeline.protegrity.discover",
+    "trial_center_pipeline.protegrity.discover",
     return_value={"PERSON": []},
 )
 @mock.patch(
-    "dev_edition_trial_center.trial_center_pipeline.protegrity.find_and_protect",
+    "trial_center_pipeline.protegrity.find_and_protect",
     side_effect=RuntimeError("protection unavailable"),
 )
 @mock.patch(
-    "dev_edition_trial_center.trial_center_pipeline.protegrity.find_and_redact",
+    "trial_center_pipeline.protegrity.find_and_redact",
     return_value="[REDACTED]",
 )
 @mock.patch(
-    "dev_edition_trial_center.trial_center_pipeline.requests.post",
+    "trial_center_pipeline.requests.post",
     return_value=mock.Mock(
         raise_for_status=mock.Mock(),
         json=mock.Mock(return_value=_mock_guardrail_response()),
     ),
 )
-def test_trial_center_forge_falls_back_to_redaction(
+def test_trial_center_forge_reports_protection_failure(
     mock_post,
     mock_redact,
     mock_protect,
@@ -59,24 +59,25 @@ def test_trial_center_forge_falls_back_to_redaction(
     report = forge.process_prompt("Sensitive prompt with PII")
 
     assert report.guardrail.outcome == "accepted"
-    assert report.sanitization.method_used == "redact"
-    assert report.sanitization.sanitized_prompt == "[REDACTED]"
-    assert report.sanitization.display_prompt == "[REDACTED]"
+    assert report.sanitization.method_used == "protect"
+    assert report.sanitization.sanitize_error == "protection unavailable"
+    assert report.sanitization.sanitized_prompt == "Sensitive prompt with PII"  # Returns original on error
     mock_post.assert_called_once()
-    mock_redact.assert_called_once()
+    mock_protect.assert_called_once()
+    mock_redact.assert_not_called()
 
 
-@mock.patch("dev_edition_trial_center.trial_center_pipeline.protegrity.configure")
+@mock.patch("trial_center_pipeline.protegrity.configure")
 @mock.patch(
-    "dev_edition_trial_center.trial_center_pipeline.protegrity.discover",
+    "trial_center_pipeline.protegrity.discover",
     return_value={},
 )
 @mock.patch(
-    "dev_edition_trial_center.trial_center_pipeline.protegrity.find_and_redact",
+    "trial_center_pipeline.protegrity.find_and_redact",
     return_value="Sentence one. Sentence two.",
 )
 @mock.patch(
-    "dev_edition_trial_center.trial_center_pipeline.requests.post",
+    "trial_center_pipeline.requests.post",
     return_value=mock.Mock(
         raise_for_status=mock.Mock(),
         json=mock.Mock(return_value=_mock_guardrail_response(score=0.2)),
@@ -100,17 +101,17 @@ def test_trial_center_forge_accepts_low_risk_prompt(
     assert report.sanitization.display_prompt == "Sentence one. Sentence two."
 
 
-@mock.patch("dev_edition_trial_center.trial_center_pipeline.protegrity.configure")
+@mock.patch("trial_center_pipeline.protegrity.configure")
 @mock.patch(
-    "dev_edition_trial_center.trial_center_pipeline.protegrity.discover",
+    "trial_center_pipeline.protegrity.discover",
     return_value={},
 )
 @mock.patch(
-    "dev_edition_trial_center.trial_center_pipeline.protegrity.find_and_redact",
+    "trial_center_pipeline.protegrity.find_and_redact",
     return_value="Sanitized",
 )
 @mock.patch(
-    "dev_edition_trial_center.trial_center_pipeline.requests.post",
+    "trial_center_pipeline.requests.post",
     return_value=mock.Mock(
         raise_for_status=mock.Mock(),
         json=mock.Mock(return_value=_mock_guardrail_response(score=0.49, outcome="approved")),

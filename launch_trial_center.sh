@@ -64,15 +64,22 @@ ${BLUE}PREREQUISITES:${NC}
        docker-compose up -d
     
     2. Python 3.11+
-    3. Required packages: pip install -r requirements.txt
+    3. Python packages (automatically installed by this script)
 
 ${BLUE}USAGE:${NC}
     $0 [--help]
 
+${BLUE}WHAT THIS SCRIPT DOES:${NC}
+    ✓ Validates Docker and services are running
+    ✓ Creates Python virtual environment (if needed)
+    ✓ Automatically installs missing packages
+    ✓ Verifies all dependencies are present
+    ✓ Launches the Streamlit UI
+
 ${BLUE}ENVIRONMENT VARIABLES (optional):${NC}
-    DEV_EDITION_EMAIL
-    DEV_EDITION_PASSWORD
-    DEV_EDITION_API_KEY
+    DEV_EDITION_EMAIL      - For reversible protection features
+    DEV_EDITION_PASSWORD   - For reversible protection features
+    DEV_EDITION_API_KEY    - For reversible protection features
 
 EOF
 }
@@ -199,17 +206,46 @@ setup_output_directory() {
 check_dependencies() {
     print_step "Checking Python dependencies..."
     
+    # Check for all critical dependencies with detailed reporting
+    local missing_deps=false
+    local missing_list=()
+    
+    # Check each dependency individually for better error reporting
+    if ! python -c "import protegrity_developer_python" &> /dev/null; then
+        missing_deps=true
+        missing_list+=("protegrity-developer-python")
+    fi
+    
     if ! python -c "import streamlit" &> /dev/null; then
-        print_warning "Installing dependencies..."
+        missing_deps=true
+        missing_list+=("streamlit")
+    fi
+    
+    if ! python -c "import requests" &> /dev/null; then
+        missing_deps=true
+        missing_list+=("requests")
+    fi
+    
+    if ! python -c "import pandas" &> /dev/null; then
+        missing_deps=true
+        missing_list+=("pandas")
+    fi
+    
+    if [[ "${missing_deps}" == "true" ]]; then
+        echo
+        print_warning "Missing packages detected: ${missing_list[*]}"
+        print_warning "Installing all dependencies from requirements.txt..."
+        echo
         
         if [[ -f "${SCRIPT_DIR}/requirements.txt" ]]; then
             pip install -r "${SCRIPT_DIR}/requirements.txt" || error_exit "Failed to install dependencies" "${EXIT_DEPENDENCY_ERROR}"
-            print_success "Dependencies installed"
+            echo
+            print_success "All dependencies installed successfully"
         else
             error_exit "requirements.txt not found" "${EXIT_DEPENDENCY_ERROR}"
         fi
     else
-        print_success "Dependencies installed"
+        print_success "All dependencies verified (protegrity-developer-python, streamlit, requests, pandas)"
     fi
 }
 

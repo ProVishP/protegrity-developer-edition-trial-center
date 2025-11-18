@@ -7,6 +7,7 @@ from trial_center_pipeline import (
     GuardianPromptForge,
     PromptSanitizer,
     SanitizationConfig,
+    SemanticGuardrailClient,
 )
 
 
@@ -45,7 +46,7 @@ def _mock_guardrail_response(score: float = 0.7, outcome: str = "accepted"):
         json=mock.Mock(return_value=_mock_guardrail_response()),
     ),
 )
-def test_trial_center_pipeline_falls_back_to_redaction(
+def test_trial_center_sanitizer_reports_protection_failure(
     mock_post,
     mock_redact,
     mock_protect,
@@ -61,11 +62,13 @@ def test_trial_center_pipeline_falls_back_to_redaction(
     report = forge.process_prompt("Sensitive prompt with PII")
 
     assert report.guardrail.outcome == "accepted"
-    assert report.sanitization.method_used == "redact"
-    assert report.sanitization.sanitized_prompt == "[REDACTED]"
+    assert report.sanitization.method_used == "protect"
+    assert report.sanitization.sanitize_error == "protection unavailable"
+    assert report.sanitization.sanitized_prompt == "Sensitive prompt with PII"
     assert report.sanitization.unprotected_prompt is None
     mock_post.assert_called_once()
-    mock_redact.assert_called_once()
+    mock_protect.assert_called_once()
+    mock_redact.assert_not_called()
     mock_unprotect.assert_not_called()
 
 
@@ -135,11 +138,11 @@ def test_trial_center_pipeline_preserves_service_outcome(
 @mock.patch("trial_center_pipeline.protegrity.discover", return_value={})
 @mock.patch(
     "trial_center_pipeline.protegrity.find_and_unprotect",
-    return_value="Restored prompt",
+    return_value="Test prompt with data",  # Must match original prompt after normalization
 )
 @mock.patch(
     "trial_center_pipeline.protegrity.find_and_protect",
-    return_value="[TOKEN]Restored prompt[/TOKEN]",
+    return_value="[TOKEN]abc123[/TOKEN] prompt with [TOKEN]def456[/TOKEN]",
 )
 @mock.patch(
     "trial_center_pipeline.protegrity.find_and_redact"
@@ -164,14 +167,13 @@ def test_trial_center_pipeline_handles_unprotect(
         sanitization_config=SanitizationConfig(method="protect"),
     )
 
-    report = forge.process_prompt("Prompt")
+    report = forge.process_prompt("Test prompt with data")
 
     assert report.guardrail.outcome == "accepted"
     assert report.sanitization.method_used == "protect"
-    assert report.sanitization.raw_sanitized_prompt == "[TOKEN]Restored prompt[/TOKEN]"
-    assert report.sanitization.display_prompt == "[TOKEN]***[/TOKEN]"
-    assert report.sanitization.unprotected_prompt == "Restored prompt"
-    mock_unprotect.assert_called_once_with("[TOKEN]Restored prompt[/TOKEN]")
+    assert report.sanitization.raw_sanitized_prompt == "[TOKEN]abc123[/TOKEN] prompt with [TOKEN]def456[/TOKEN]"
+    assert report.sanitization.unprotected_prompt == "Test prompt with data"
+    mock_unprotect.assert_called_once_with("[TOKEN]abc123[/TOKEN] prompt with [TOKEN]def456[/TOKEN]")
 
 
 @mock.patch("trial_center_pipeline.protegrity.configure")
@@ -225,3 +227,44 @@ def test_prompt_sanitizer_extends_composite_entity_mapping(
     assert any(mapping.get("PERSON|COMPANY_NAME") == "PERSON" for mapping in named_maps)
     assert "PERSON|COMPANY_NAME" not in result.discovery_entities
     assert result.discovery_entities.get("PERSON")
+
+
+@mock.patch(
+    "trial_center_pipeline.requests.post",
+    return_value=mock.Mock(
+        raise_for_status=mock.Mock(),
+        json=mock.Mock(return_value=_mock_guardrail_response(score=0.8, outcome="flagged")),
+    ),
+)
+def test_semantic_guardrail_client_scores_prompt(mock_post):
+    client = SemanticGuardrailClient(GuardrailConfig(rejection_threshold=0.7))
+    result = client.score_prompt("Test prompt")
+    
+    assert result.outcome == "flagged"
+    assert result.score == 0.8
+    assert result.explanation is not None
+    mock_post.assert_called_once()
+
+
+@mock.patch("trial_center_pipeline.protegrity.configure")
+@mock.patch(
+    "trial_center_pipeline.protegrity.discover",
+    return_value={"EMAIL": [{"location": {"start_index": 0, "end_index": 15}}]},
+)
+@mock.patch(
+    "trial_center_pipeline.protegrity.find_and_protect",
+    return_value="Test prompt",  # Simulate silent failure - no modification
+)
+def test_prompt_sanitizer_detects_silent_protection_failure(
+    mock_protect,
+    mock_discover,
+    mock_configure,
+):
+    sanitizer = PromptSanitizer(SanitizationConfig(method="protect"))
+    result = sanitizer.sanitize("Test prompt")
+    
+    assert result.method_used == "protect"
+    assert result.sanitize_error is not None
+    assert "Protection did not modify the text" in result.sanitize_error
+    assert result.sanitized_prompt == "Test prompt"  # Returns original
+    assert result.unprotected_prompt is None

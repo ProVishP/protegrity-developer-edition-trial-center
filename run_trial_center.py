@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 try:
-    from .trial_center_pipeline import (
+    from trial_center_pipeline import (
     GuardrailConfig,
     GuardianPromptForge,
     SanitizationConfig,
