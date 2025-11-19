@@ -146,9 +146,7 @@ protegrity-developer-edition-trial-center/
 ├── pyrightconfig.json             # Python type checking config
 │
 ├── assets/                        # UI images and resources
-│   ├── cybersecurity_concept.jpg
-│   ├── protegrity_logo.svg
-│   └── server_room.jpg
+│   └── protegrity_logo.svg
 │
 ├── samples/                       # Sample prompts for testing
 │   ├── input_test.txt
