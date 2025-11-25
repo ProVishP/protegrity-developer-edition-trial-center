@@ -95,7 +95,7 @@ class GuardrailConfig:
         "http://localhost:8581/pty/semantic-guardrail/v1.0/conversations/messages/scan"
     )
     rejection_threshold: float = 0.6
-    timeout_seconds: float = 30.0
+    timeout_seconds: float = 120.0
 
 
 @dataclass
