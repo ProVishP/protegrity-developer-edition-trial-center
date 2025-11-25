@@ -205,7 +205,7 @@ docker-compose up -d
 
 **3. Protection Operations Failing**
 - Ensure environment variables are set: `DEV_EDITION_EMAIL`, `DEV_EDITION_PASSWORD`, `DEV_EDITION_API_KEY`
-- Verify credentials at [Protegrity API Playground](https://developer-edition.protegrity.io/)
+- Get credentials at [Get Developer Edition API Credentials](https://www.protegrity.com/developers/get-api-credentials)
 - Note: Discovery and Redaction work without credentials
 
 **4. Virtual Environment Issues**
@@ -220,7 +220,7 @@ pip install -r requirements.txt
 ## 🔗 Links
 
 - **Protegrity Developer Edition**: [GitHub Repository](https://github.com/Protegrity-Developer-Edition/protegrity-developer-edition)
-- **Protegrity API Playground**: [Try APIs](https://developer-edition.protegrity.io/)
+- **Get API Credentials**: [Developer Edition Credentials](https://www.protegrity.com/developers/get-api-credentials)
 - **Documentation**: [API Docs](https://developer-edition.protegrity.io/docs)
 
 ## 🧪 Testing

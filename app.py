@@ -54,11 +54,11 @@ with col_right:
                style="text-decoration: none; color: #58a6ff; font-size: 14px; display: block;">
                 📂 GitHub Repository
             </a>
-            <a href="https://www.protegrity.com/developers/api-playground" 
+            <a href="https://www.protegrity.com/developers/get-api-credentials" 
                target="_blank" 
                title="Get your API credentials to enable protect/unprotect operations"
                style="text-decoration: none; color: #58a6ff; font-size: 14px; display: block;">
-                🔑 Protegrity API Playground
+                🔑 Get Developer Edition API Credentials
             </a>
         </div>
         """,
