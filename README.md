@@ -32,8 +32,20 @@ docker-compose up -d
 ```
 
 The following services must be accessible:
-- **Semantic Guardrail**: `http://localhost:8581`
-- **Data Discovery**: `http://localhost:8580`
+- **Semantic Guardrail**: `http://localhost:8581` - Validates prompts for security and policy compliance
+- **Classification Service** (Data Discovery): `http://localhost:8580` - Identifies and classifies sensitive data
+
+You can verify services are running:
+```bash
+# Check Semantic Guardrail
+curl http://localhost:8581/docs
+
+# Check Classification Service
+curl http://localhost:8580/docs
+
+# Or check Docker containers
+docker ps | grep -E "semantic_guardrail|classification_service"
+```
 
 ### 2. System Requirements
 
@@ -93,7 +105,9 @@ streamlit run app.py
 
 ## ⚙️ Configuration
 
-### Environment Variables (Optional)
+### Environment Variables
+
+#### Required for Protection/Unprotection (Optional)
 
 To enable **Protection** and **Unprotection** features:
 
@@ -102,6 +116,20 @@ export DEV_EDITION_EMAIL="your-email@example.com"
 export DEV_EDITION_PASSWORD="your-password"
 export DEV_EDITION_API_KEY="your-api-key"
 ```
+
+#### Service Port Configuration (Optional)
+
+Override default service ports if needed:
+
+```bash
+# Semantic Guardrail (default: 8581)
+export SEMANTIC_GUARDRAIL_PORT="8581"
+
+# Classification Service (default: 8580)
+export CLASSIFICATION_SERVICE_PORT="8580"
+```
+
+These are rarely needed unless you've customized the Protegrity Developer Edition Docker setup.
 
 **Without credentials:**
 - ✅ Data Discovery works
@@ -192,10 +220,26 @@ python -c "import protegrity_developer_python, streamlit, requests, pandas; prin
 # Check if Docker is running
 docker ps
 
-# Start Protegrity Developer Edition services
+# Verify Protegrity services are running
+docker ps | grep -E "semantic_guardrail|classification_service"
+
+# Expected output should show:
+# - semantic_guardrail container on port 8581
+# - classification_service container on port 8580
+
+# If not running, start Protegrity Developer Edition services
 cd path/to/protegrity-developer-edition
 docker-compose up -d
+
+# Wait for services to initialize (1-2 minutes)
+sleep 120
+
+# Test services are responding
+curl -I http://localhost:8581/docs  # Should return 200 OK
+curl -I http://localhost:8580/docs  # Should return 200 OK
 ```
+
+**Note:** The Trial Center UI includes a "Service Status" panel that shows real-time health of both services.
 
 **2. Port Already in Use**
 ```bash

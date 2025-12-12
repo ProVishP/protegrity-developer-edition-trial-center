@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 import logging
+import os
+import requests
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator, List, Optional, Tuple
@@ -65,8 +67,16 @@ with col_right:
         unsafe_allow_html=True,
     )
 
+# Service Health Check
+def check_service_health(url: str, timeout: int = 2) -> bool:
+    """Check if a service is accessible."""
+    try:
+        response = requests.get(url, timeout=timeout)
+        return response.status_code < 500
+    except Exception:
+        return False
+
 # Show shared environment disclaimer banner
-import os
 if os.getenv("SHARED_TRIAL_MODE", "false").lower() == "true":
     st.info(
         """
@@ -110,8 +120,34 @@ st.markdown(
 )
 
 
+# Get service URLs from environment or use defaults
+SEMANTIC_GUARDRAIL_PORT = os.getenv("SEMANTIC_GUARDRAIL_PORT", "8581")
+CLASSIFICATION_SERVICE_PORT = os.getenv("CLASSIFICATION_SERVICE_PORT", "8580")
+SEMANTIC_GUARDRAIL_URL = f"http://localhost:{SEMANTIC_GUARDRAIL_PORT}"
+CLASSIFICATION_SERVICE_URL = f"http://localhost:{CLASSIFICATION_SERVICE_PORT}"
+
 DEFAULT_GUARDRAIL_URL = GuardrailConfig().url
-class SessionLogHandler(logging.Handler):
+
+# Display service status in expander
+with st.expander("🔧 Service Status", expanded=False):
+    col1, col2 = st.columns(2)
+    with col1:
+        sg_healthy = check_service_health(f"{SEMANTIC_GUARDRAIL_URL}/docs")
+        st.metric(
+            "Semantic Guardrail",
+            "🟢 Online" if sg_healthy else "🔴 Offline",
+            f"Port {SEMANTIC_GUARDRAIL_PORT}"
+        )
+    with col2:
+        cs_healthy = check_service_health(f"{CLASSIFICATION_SERVICE_URL}/docs")
+        st.metric(
+            "Classification Service",
+            "🟢 Online" if cs_healthy else "🔴 Offline",
+            f"Port {CLASSIFICATION_SERVICE_PORT}"
+        )
+    
+    if not sg_healthy or not cs_healthy:
+        st.warning("⚠️ Some services are offline. Ensure Protegrity Developer Edition Docker containers are running.")\n\nclass SessionLogHandler(logging.Handler):
     """In-memory log handler that feeds the Streamlit log view."""
 
     def __init__(self, buffer: List[str]) -> None:
