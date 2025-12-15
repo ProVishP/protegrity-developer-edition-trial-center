@@ -1,6 +1,6 @@
 # Protegrity Developer Edition Trial Center
 
-An interactive Streamlit application demonstrating privacy-preserving GenAI workflows using [Protegrity Developer Edition](https://github.com/Protegrity-Developer-Edition/protegrity-developer-edition). This trial center showcases how to integrate data discovery, semantic guardrails, and data protection capabilities into AI/ML pipelines.
+An interactive Streamlit application demonstrating privacy-preserving GenAI workflows using [Protegrity Developer Edition v1.1.0](https://github.com/Protegrity-Developer-Edition/protegrity-developer-edition/tree/pre-release-1.1.0). This trial center showcases how to integrate data discovery, semantic guardrails, and data protection capabilities into AI/ML pipelines.
 
 <!-- ![Trial Center UI](assets/trial_center_ui.png) -->
 
@@ -25,8 +25,11 @@ This Trial Center requires **Protegrity Developer Edition** services to be runni
 git clone https://github.com/Protegrity-Developer-Edition/protegrity-developer-edition.git
 cd protegrity-developer-edition
 
+# Switch to pre-release-1.1.0 branch
+git checkout pre-release-1.1.0
+
 # Start the services
-docker-compose up -d
+docker compose up -d
 
 # Wait 1-2 minutes for services to initialize
 ```
@@ -37,11 +40,11 @@ The following services must be accessible:
 
 You can verify services are running:
 ```bash
-# Check Semantic Guardrail
-curl http://localhost:8581/docs
+# Check Semantic Guardrail (v1.1)
+curl http://localhost:8581/pty/semantic-guardrail/v1.1/health
 
-# Check Classification Service
-curl http://localhost:8580/docs
+# Check Classification Service (v1.1)
+curl http://localhost:8580/pty/data-discovery/v1.1/classify
 
 # Or check Docker containers
 docker ps | grep -E "semantic_guardrail|classification_service"
@@ -50,7 +53,7 @@ docker ps | grep -E "semantic_guardrail|classification_service"
 ### 2. System Requirements
 
 - **Docker Desktop** or Docker Engine
-- **Python 3.11+**
+- **Python 3.12.11+** (updated for v1.1.0 compatibility)
 - **macOS, Linux, or Windows** with WSL2
 
 ### 3. Protegrity Account (Optional)
@@ -234,9 +237,9 @@ docker-compose up -d
 # Wait for services to initialize (1-2 minutes)
 sleep 120
 
-# Test services are responding
-curl -I http://localhost:8581/docs  # Should return 200 OK
-curl -I http://localhost:8580/docs  # Should return 200 OK
+# Test services are responding (v1.1 endpoints)
+curl http://localhost:8581/pty/semantic-guardrail/v1.1/health  # Should return health status
+curl http://localhost:8580/pty/data-discovery/v1.1/classify  # Should return 415 (needs POST with data)
 ```
 
 **Note:** The Trial Center UI includes a "Service Status" panel that shows real-time health of both services.

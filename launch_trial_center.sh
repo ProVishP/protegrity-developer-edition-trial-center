@@ -187,7 +187,7 @@ wait_for_service() {
 
 check_services() {
     local http_code_guardrail=$(curl -s -o /dev/null -w "%{http_code}" "${GUARDRAIL_ENDPOINT}/docs" 2>/dev/null || echo "000")
-    local http_code_discovery=$(curl -s -o /dev/null -w "%{http_code}" "${DISCOVERY_ENDPOINT}/pty/data-discovery/v1.0/classify" 2>/dev/null || echo "000")
+    local http_code_discovery=$(curl -s -o /dev/null -w "%{http_code}" "${DISCOVERY_ENDPOINT}/pty/data-discovery/v1.1/classify" 2>/dev/null || echo "000")
     
     if [[ "${http_code_guardrail}" =~ ^[2-5][0-9][0-9]$ ]] && [[ "${http_code_discovery}" =~ ^[2-5][0-9][0-9]$ ]]; then
         print_success "Services are healthy"
@@ -196,7 +196,7 @@ check_services() {
     
     print_step "Checking service health..."
     wait_for_service "Semantic Guardrail" "${GUARDRAIL_ENDPOINT}" "/docs"
-    wait_for_service "Data Discovery" "${DISCOVERY_ENDPOINT}" "/pty/data-discovery/v1.0/classify"
+    wait_for_service "Data Discovery" "${DISCOVERY_ENDPOINT}" "/pty/data-discovery/v1.1/classify"
 }
 
 setup_output_directory() {

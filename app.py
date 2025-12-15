@@ -126,7 +126,9 @@ CLASSIFICATION_SERVICE_PORT = os.getenv("CLASSIFICATION_SERVICE_PORT", "8580")
 SEMANTIC_GUARDRAIL_URL = f"http://localhost:{SEMANTIC_GUARDRAIL_PORT}"
 CLASSIFICATION_SERVICE_URL = f"http://localhost:{CLASSIFICATION_SERVICE_PORT}"
 
+# API endpoint URLs with v1.1 (updated from v1.0)
 DEFAULT_GUARDRAIL_URL = GuardrailConfig().url
+DEFAULT_DISCOVERY_ENDPOINT = f"{CLASSIFICATION_SERVICE_URL}/pty/data-discovery/v1.1/classify"
 
 # Display service status in expander
 with st.expander("🔧 Service Status", expanded=False):
@@ -147,7 +149,9 @@ with st.expander("🔧 Service Status", expanded=False):
         )
     
     if not sg_healthy or not cs_healthy:
-        st.warning("⚠️ Some services are offline. Ensure Protegrity Developer Edition Docker containers are running.")\n\nclass SessionLogHandler(logging.Handler):
+        st.warning("⚠️ Some services are offline. Ensure Protegrity Developer Edition Docker containers are running.")
+
+class SessionLogHandler(logging.Handler):
     """In-memory log handler that feeds the Streamlit log view."""
 
     def __init__(self, buffer: List[str]) -> None:
@@ -219,6 +223,7 @@ def _build_services() -> Tuple[
         SanitizationConfig(
             method="protect",
             fallback_method="redact",
+            endpoint_url=DEFAULT_DISCOVERY_ENDPOINT,
             enable_logging=SDK_LOGGING_ENABLED,
             log_level=DEFAULT_SDK_LOG_LEVEL,
         )
@@ -227,6 +232,7 @@ def _build_services() -> Tuple[
         SanitizationConfig(
             method="redact",
             fallback_method="redact",
+            endpoint_url=DEFAULT_DISCOVERY_ENDPOINT,
             enable_logging=SDK_LOGGING_ENABLED,
             log_level=DEFAULT_SDK_LOG_LEVEL,
         )

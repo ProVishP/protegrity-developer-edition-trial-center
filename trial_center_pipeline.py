@@ -92,7 +92,7 @@ class GuardrailConfig:
     """Configuration for Semantic Guardrail scoring."""
 
     url: str = (
-        "http://localhost:8581/pty/semantic-guardrail/v1.0/conversations/messages/scan"
+        "http://localhost:8581/pty/semantic-guardrail/v1.1/conversations/messages/scan"
     )
     rejection_threshold: float = 0.6
     timeout_seconds: float = 120.0
@@ -174,7 +174,6 @@ class SemanticGuardrailClient:
                     "from": "user",
                     "to": "ai",
                     "content": prompt,
-                    "processors": ["semantic"],
                 }
             ]
         }
