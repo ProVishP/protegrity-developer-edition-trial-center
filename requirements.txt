@@ -1,12 +1,10 @@
 # Protegrity Developer Edition Trial Center - Python Dependencies
 # Python 3.12.11+ required (updated for v1.1.0 compatibility)
 
-# CRITICAL: Protegrity Developer Edition SDK v1.1.0
+# CRITICAL: Protegrity Developer Edition SDK v1.1.1
 # This package is REQUIRED for all discovery, protection, and redaction operations
-# Must be installed from TestPyPI with fallback to PyPI for dependencies
-# Install using: pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple protegrity-developer-python==1.1.0
-# Note: Use latest available version if 1.1.0 not found
-protegrity-developer-python>=0.9.0rc6
+# Available on PyPI: https://pypi.org/project/protegrity-developer-python/
+protegrity-developer-python>=1.1.1
 
 # Web Framework
 streamlit>=1.28.0

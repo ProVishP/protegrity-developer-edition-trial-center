@@ -141,13 +141,7 @@ cd protegrity-developer-edition-trial-center
 echo "✓ Trial Center cloned"
 
 echo "Installing Python dependencies..."
-# Try to install from TestPyPI first (for v1.1.0), fall back to PyPI
-pip3 install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple protegrity-developer-python==1.1.0 --quiet 2>/dev/null || {
-    echo "⚠ v1.1.0 not found on TestPyPI, installing latest available version..."
-    pip3 install protegrity-developer-python --quiet
-}
-
-# Install remaining dependencies
+# Install latest version from PyPI (v1.1.1+)
 pip3 install -r requirements.txt --quiet
 echo "✓ Dependencies installed"
 
