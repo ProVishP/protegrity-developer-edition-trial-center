@@ -508,25 +508,36 @@ st.markdown("""
             color: #ffffff !important;
         }
         
-        /* Nested expanders (View API Response, etc) - Dark grey */
+        /* Nested expanders (View API Response, etc) - Blue text for visibility */
         .streamlit-expanderContent div[data-testid="stExpander"] {
             margin-bottom: 0 !important;
         }
         
         .streamlit-expanderContent div[data-testid="stExpander"] > div:first-child button.streamlit-expanderHeader {
-            background: #495057 !important;
-            border: 2px solid #343a40 !important;
-            color: #ffffff !important;
-            -webkit-text-fill-color: #ffffff !important;
+            background: #f8f9fa !important;
+            border: 2px solid #dee2e6 !important;
+            color: #2563eb !important;
+            -webkit-text-fill-color: #2563eb !important;
             padding: 0.75rem 1rem !important;
             font-size: 0.8125rem !important;
             margin-top: 1rem !important;
             font-weight: 600 !important;
-            box-shadow: none !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
         }
         
         .streamlit-expanderContent div[data-testid="stExpander"] > div:first-child button.streamlit-expanderHeader:hover {
-            background: #6c757d !important;
+            background: #e9ecef !important;
+            border-color: #adb5bd !important;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+        }
+        
+        .streamlit-expanderContent div[data-testid="stExpander"] > div:first-child button.streamlit-expanderHeader * {
+            color: #2563eb !important;
+            -webkit-text-fill-color: #2563eb !important;
+        }
+        
+        .streamlit-expanderContent div[data-testid="stExpander"] > div:first-child button.streamlit-expanderHeader svg {
+            color: #2563eb !important;
         }
         
         .streamlit-expanderContent {
