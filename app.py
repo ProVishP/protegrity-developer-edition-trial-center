@@ -1,6 +1,7 @@
 """Streamlit UI for the Dev Edition Trial Center."""
 
 from __future__ import annotations
+import html
 import logging
 import os
 import requests
@@ -162,7 +163,7 @@ def check_service_health(url: str, timeout: int = 2) -> bool:
     try:
         response = requests.get(url, timeout=timeout)
         return response.status_code < 500
-    except Exception:
+    except (requests.RequestException, requests.Timeout, ConnectionError):
         return False
 
 # Show shared environment disclaimer banner
@@ -807,11 +808,12 @@ def _render_guardrail(result: GuardrailResult, step_number: Optional[int] = None
         with st.expander("View API Response"):
             import json
             json_str = json.dumps(result.raw_response, indent=2)
+            escaped_json = html.escape(json_str, quote=True)
             st.markdown(f"""
                 <div class="code-with-copy">
                     <div class="code-copy-header">
                         <span style="font-weight: 600; font-size: 0.8125rem; color: #2c3e50;">API Response JSON</span>
-                        <button class="code-copy-button" onclick="navigator.clipboard.writeText(`{json_str.replace('`', '\\`').replace('$', '\\$')}`)" title="Copy to clipboard">
+                        <button class="code-copy-button" onclick="navigator.clipboard.writeText(this.dataset.content)" data-content="{escaped_json}" title="Copy to clipboard">
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <rect x="5" y="5" width="9" height="9" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/>
                                 <rect x="2" y="2" width="9" height="9" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/>
@@ -849,11 +851,12 @@ def _render_discovery(result: SanitizationResult, step_number: Optional[int] = N
             with st.expander("View Detected Entities"):
                 import json
                 json_str = json.dumps(result.discovery_entities, indent=2)
+                escaped_json = html.escape(json_str, quote=True)
                 st.markdown(f"""
                     <div class="code-with-copy">
                         <div class="code-copy-header">
                             <span style="font-weight: 600; font-size: 0.8125rem; color: #2c3e50;">Detected Entities JSON</span>
-                            <button class="code-copy-button" onclick="navigator.clipboard.writeText(`{json_str.replace('`', '\\`').replace('$', '\\$')}`)" title="Copy to clipboard">
+                            <button class="code-copy-button" onclick="navigator.clipboard.writeText(this.dataset.content)" data-content="{escaped_json}" title="Copy to clipboard">
                                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <rect x="5" y="5" width="9" height="9" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/>
                                     <rect x="2" y="2" width="9" height="9" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/>
@@ -906,12 +909,13 @@ def _render_protection(result: SanitizationResult, step_number: Optional[int] = 
             
             preview_text = result.display_prompt or result.sanitized_prompt
             raw_text = result.raw_sanitized_prompt or result.sanitized_prompt
+            escaped_text = html.escape(raw_text, quote=True)
             
             st.markdown(f"""
                 <div class="code-with-copy">
                     <div class="code-copy-header">
                         <span style="font-weight: 600; font-size: 0.8125rem; color: #2c3e50;">Protected Output</span>
-                        <button class="code-copy-button" onclick="navigator.clipboard.writeText(`{raw_text.replace('`', '\\`')}`)" title="Copy to clipboard">
+                        <button class="code-copy-button" onclick="navigator.clipboard.writeText(this.dataset.content)" data-content="{escaped_text}" title="Copy to clipboard">
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <rect x="5" y="5" width="9" height="9" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/>
                                 <rect x="2" y="2" width="9" height="9" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/>
@@ -962,11 +966,12 @@ def _render_unprotect(result: SanitizationResult, step_number: Optional[int] = N
             """, unsafe_allow_html=True)
             
             unprotected_text = result.unprotected_prompt
+            escaped_text = html.escape(unprotected_text, quote=True)
             st.markdown(f"""
                 <div class="code-with-copy">
                     <div class="code-copy-header">
                         <span style="font-weight: 600; font-size: 0.8125rem; color: #2c3e50;">Restored Output</span>
-                        <button class="code-copy-button" onclick="navigator.clipboard.writeText(`{unprotected_text.replace('`', '\\`')}`)" title="Copy to clipboard">
+                        <button class="code-copy-button" onclick="navigator.clipboard.writeText(this.dataset.content)" data-content="{escaped_text}" title="Copy to clipboard">
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <rect x="5" y="5" width="9" height="9" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/>
                                 <rect x="2" y="2" width="9" height="9" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/>
@@ -1007,12 +1012,13 @@ def _render_redaction(result: SanitizationResult, step_number: Optional[int] = N
         
         preview_text = result.display_prompt or result.sanitized_prompt
         raw_text = result.sanitized_prompt
+        escaped_text = html.escape(raw_text, quote=True)
         
         st.markdown(f"""
             <div class="code-with-copy">
                 <div class="code-copy-header">
                     <span style="font-weight: 600; font-size: 0.8125rem; color: #2c3e50;">Redacted Output</span>
-                    <button class="code-copy-button" onclick="navigator.clipboard.writeText(`{raw_text.replace('`', '\\`')}`)" title="Copy to clipboard">
+                    <button class="code-copy-button" onclick="navigator.clipboard.writeText(this.dataset.content)" data-content="{escaped_text}" title="Copy to clipboard">
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <rect x="5" y="5" width="9" height="9" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/>
                             <rect x="2" y="2" width="9" height="9" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/>
