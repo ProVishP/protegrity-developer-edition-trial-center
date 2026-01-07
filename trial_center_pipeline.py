@@ -166,14 +166,24 @@ class SemanticGuardrailClient:
     def __init__(self, config: GuardrailConfig) -> None:
         self._config = config
 
-    def score_prompt(self, prompt: str, metadata: Optional[Dict[str, Any]] = None) -> GuardrailResult:
-        """Submit a single-turn conversation for scoring."""
+    def score_prompt(self, prompt: str, domain: str = "customer-support", metadata: Optional[Dict[str, Any]] = None) -> GuardrailResult:
+        """Submit a single-turn conversation for scoring.
+        
+        Args:
+            prompt: The user prompt to evaluate
+            domain: Semantic domain processor (customer-support, financial, healthcare)
+            metadata: Optional metadata to include in the request
+        
+        Note: v1.1 API uses domain-specific processors for user messages.
+        Available domains: customer-support, financial, healthcare.
+        """
         payload = {
             "messages": [
                 {
                     "from": "user",
                     "to": "ai",
                     "content": prompt,
+                    "processors": [domain],
                 }
             ]
         }
