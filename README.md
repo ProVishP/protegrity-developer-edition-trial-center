@@ -9,10 +9,10 @@ An interactive Streamlit application demonstrating privacy-preserving GenAI work
 This Trial Center provides a hands-on environment to explore Protegrity's privacy and security capabilities for GenAI applications:
 
 - **Data Discovery**: Automatically identify and classify sensitive data patterns
-- **Semantic Guardrail**: Validate prompts for policy compliance and security risks
+- **Semantic Guardrail**: Validate prompts for policy compliance and security risks using domain-specific processors (customer-support, financial, healthcare)
 - **Protection & Unprotection**: Apply reversible encryption to sensitive data
 - **Redaction**: Irreversibly mask sensitive information
-- **Interactive UI**: User-friendly Streamlit interface for all operations
+- **Interactive UI**: User-friendly Streamlit interface with domain selection and pipeline mode configuration
 
 ## 🔧 Prerequisites
 
@@ -142,24 +142,41 @@ These are rarely needed unless you've customized the Protegrity Developer Editio
 
 ## 📖 Features
 
-### 1. **Discovery Only**
-Analyze text to identify sensitive data types (SSN, credit cards, emails, etc.) without modification.
-
-### 2. **Find & Protect**
-Discover sensitive data and apply reversible encryption (requires credentials).
-
-### 3. **Find & Unprotect**
-Decrypt previously protected data back to original form (requires credentials).
-
-### 4. **Find & Redact**
-Permanently mask sensitive data with `***REDACTED***` (no credentials needed).
-
-### 5. **Semantic Guardrail**
-Validate prompts against security policies:
+### 1. **Domain-Specific Semantic Guardrails**
+Validate prompts against security policies using specialized domain processors:
+- **Customer Support**: Evaluates customer service interaction risks
+- **Financial**: Assesses banking and financial context risks
+- **Healthcare**: Analyzes medical and health-related scenarios
 - Prompt injection detection
 - Jailbreak attempt detection
 - Sensitive data exposure prevention
-- Custom policy validation
+- Context-aware policy validation
+
+### 2. **Discovery Only**
+Analyze text to identify sensitive data types (SSN, credit cards, emails, etc.) without modification.
+
+### 3. **Find & Protect**
+Discover sensitive data and apply reversible encryption (requires credentials).
+
+### 4. **Find & Unprotect**
+Decrypt previously protected data back to original form (requires credentials).
+
+### 5. **Find & Redact**
+Permanently mask sensitive data with `***REDACTED***` (no credentials needed).
+
+### 6. **Pipeline Modes**
+Choose execution path from sidebar:
+- **Full Pipeline**: All steps (guardrail, discovery, protection, redaction)
+- **Semantic Guardrail**: Risk evaluation only
+- **Discover Sensitive Data**: Entity identification only
+- **Find, Protect & Unprotect**: Reversible tokenization workflow
+- **Find & Redact**: Permanent masking workflow
+
+### 7. **Domain-Specific Sample Prompts**
+Quick-load examples demonstrating various scenarios for each domain:
+- Customer Support: Password resets, admin directory requests, data exports, off-topic chat
+- Financial: Balance reviews, password retrieval attempts, executive data dumps, IT support
+- Healthcare: Appointment scheduling, unauthorized chart access, employer disclosure, lifestyle advice
 
 ## 📁 Project Structure
 
@@ -179,7 +196,7 @@ protegrity-developer-edition-trial-center/
 ├── assets/                        # UI images and resources
 │   └── protegrity_logo.svg
 │
-├── samples/                       # Sample prompts for testing
+├── samples/                       # Legacy sample prompts (now embedded in UI)
 │   ├── input_test.txt
 │   ├── sample_approved.txt
 │   ├── sample_data_leakage.txt

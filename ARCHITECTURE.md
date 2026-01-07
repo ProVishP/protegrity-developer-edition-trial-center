@@ -8,16 +8,22 @@ Dev Edition Trial Center wraps Protegrity Developer Edition services into a guid
 
 - **Launch Script (`launch_trial_center.sh`)** – Comprehensive bash launcher that validates prerequisites (Docker, Python environment, services), manages Docker Compose lifecycle, performs health checks, and launches the Streamlit UI. Provides clear feedback about missing credentials and configuration status.
 - **Streamlit UI (`app.py`)** – Interactive web interface that collects prompts, displays guardrail scores, previews protected/redacted outputs, and exposes a Run log tab that streams pipeline diagnostics. Features:
-  - **Sample prompts** – Pre-loaded examples (Approved, Data Leakage, Malicious, Off-Topic) demonstrating different guardrail outcomes
+  - **Sidebar configuration** – Centralized controls for semantic domain, pipeline mode, and sample prompts
+  - **Domain-specific processors** – Three semantic guardrail domains:
+    - customer-support: Customer service interaction risks
+    - financial: Banking and financial context risks
+    - healthcare: Medical and health-related scenario risks
+  - **Domain-specific sample prompts** – 12 pre-loaded examples (4 per domain) demonstrating different guardrail outcomes including legitimate requests, data exfiltration attempts, privilege escalation, and off-topic diversions
   - **Execution modes** – Five pipeline configurations:
     - Full Pipeline: All steps with sequential numbering (Steps 1-5)
     - Semantic Guardrail: Guardrail scoring only
     - Discover Sensitive Data: Entity discovery only
     - Find, Protect & Unprotect: Discovery → Protection → Unprotection (Steps 1-3)
     - Find & Redact: Discovery → Redaction (Steps 1-2)
+  - **Expandable result sections** – Each step renders in a professional expandable card with status indicators and copy-to-clipboard functionality
   - **Dynamic step numbering** – Each mode shows appropriate step numbers for its workflow
   - **Error handling** – Displays clear error messages when protection fails without showing sensitive data
-  - **Themed UI** – Custom CSS for dropdown menus matching the Streamlit dark theme
+  - **Professional UI styling** – Enhanced CSS with color-coded status indicators, gradient buttons, and copy-enabled code blocks
 - **Pipeline core (`trial_center_pipeline.py`)** – Provides `SemanticGuardrailClient`, `PromptSanitizer`, and helper utilities that the UI and CLI reuse. Key features:
   - **Silent failure detection** – Identifies when protection doesn't modify text (indicating credential or authentication issues)
   - **No fallback logic** – Removed automatic fallback from protection to redaction; instead surfaces clear errors
@@ -28,10 +34,14 @@ Dev Edition Trial Center wraps Protegrity Developer Edition services into a guid
 ## Data flow
 
 ```
-User Prompt
+User Input
+   │
+   ├─► Domain Selection (customer-support | financial | healthcare)
+   ├─► Pipeline Mode Selection
+   └─► Prompt (manual or sample)
    │
    ▼
-Streamlit UI ──► Pipeline Mode Selection ──► Execution Path
+Streamlit UI ──► Sidebar Configuration ──► Execution Path
    │                                              │
    │                                              ├─► Full Pipeline
    │                                              ├─► Semantic Guardrail Only
@@ -40,7 +50,7 @@ Streamlit UI ──► Pipeline Mode Selection ──► Execution Path
    │                                              └─► Find & Redact
    │
    ▼
-SemanticGuardrailClient ──► Semantic Guardrail service (REST)
+SemanticGuardrailClient ──► Semantic Guardrail service (REST + domain parameter)
    │                               │
    │                               └─► GuardrailResult (score/outcome/explanation)
    │
@@ -72,13 +82,14 @@ SemanticGuardrailClient ──► Semantic Guardrail service (REST)
 
 ## Configuration & extensibility
 
-- **Guardrail settings** – Configured for customer-support vertical; adjustable in `GuardrailConfig`
+- **Domain processors** – Three semantic guardrail domains available: `customer-support`, `financial`, `healthcare`. Selected domain is passed to the v1.1 API for context-aware risk evaluation.
+- **Guardrail settings** – Domain parameter dynamically set based on user selection in sidebar; configured in `GuardrailConfig`
 - **Environment variables** – `DEV_EDITION_EMAIL`, `DEV_EDITION_PASSWORD`, and `DEV_EDITION_API_KEY` enable reversible protection. Launch script detects missing credentials and provides clear warnings.
 - **Caching** – The UI caches service client construction so repeated runs stay responsive.
 - **Line-wise sanitisation** – `PromptSanitizer` processes multi-line prompts one line at a time, matching the sample CLI behaviour and yielding predictable redaction/protection output while preserving blank lines.
-- **Modular rendering** – UI functions (`_render_protection`, `_render_unprotect`, etc.) accept dynamic step numbers for flexible display across execution modes
-- **Sample prompts** – Easily extensible by adding new files to `samples/` directory and updating `SAMPLE_PROMPTS` dictionary
-- **Next steps** – Teams can extend the architecture with conversation-level guardrails, policy presets stored under `configs/`, or alternative UIs (Gradio, FastAPI) that reuse the same pipeline module.
+- **Modular rendering** – UI functions (`_render_protection`, `_render_unprotect`, etc.) accept dynamic step numbers for flexible display across execution modes. Each renders as an expandable card with professional styling.
+- **Domain-specific sample prompts** – Embedded in `DOMAIN_SAMPLE_PROMPTS` dictionary with 4 samples per domain covering legitimate requests, data exfiltration, privilege escalation, and off-topic scenarios
+- **Next steps** – Teams can extend the architecture with additional domain processors, conversation-level guardrails, policy presets stored under `configs/`, or alternative UIs (Gradio, FastAPI) that reuse the same pipeline module.
 
 ## Error handling philosophy
 
