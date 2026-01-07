@@ -3,8 +3,10 @@
 
 # CRITICAL: Protegrity Developer Edition SDK v1.1.0
 # This package is REQUIRED for all discovery, protection, and redaction operations
-# Install using: pip install --no-cache-dir --force-reinstall --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple protegrity-developer-python==1.1.0
-protegrity-developer-python==1.1.0
+# Must be installed from TestPyPI with fallback to PyPI for dependencies
+# Install using: pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple protegrity-developer-python==1.1.0
+# Note: Use latest available version if 1.1.0 not found
+protegrity-developer-python>=0.9.0rc6
 
 # Web Framework
 streamlit>=1.28.0
