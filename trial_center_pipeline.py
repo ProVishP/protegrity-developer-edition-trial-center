@@ -404,7 +404,10 @@ class PromptSanitizer:
     def _apply_configuration(self, method: str) -> None:
         kwargs = dict(self._base_kwargs)
         normalized = method.lower()
-        if normalized in {"redact", "mask"}:
+        # SDK expects 'mask' or 'redact', but UI uses 'protect' which means 'mask'
+        if normalized == "protect":
+            kwargs["method"] = "mask"
+        elif normalized in {"redact", "mask"}:
             kwargs["method"] = normalized
         protegrity.configure(**kwargs)
 
