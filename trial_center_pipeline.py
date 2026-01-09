@@ -15,12 +15,26 @@ from typing import Any, Callable, Dict, Optional
 
 import json
 import logging
+import os
 
 import protegrity_developer_python as protegrity
 import requests
 
 
 LOGGER = logging.getLogger(__name__)
+
+# Initialize Protegrity credentials from environment variables
+# These must be set before any SDK operations
+_DEV_EDITION_EMAIL = os.getenv("DEV_EDITION_EMAIL")
+_DEV_EDITION_PASSWORD = os.getenv("DEV_EDITION_PASSWORD")
+_DEV_EDITION_API_KEY = os.getenv("DEV_EDITION_API_KEY")
+
+if not all([_DEV_EDITION_EMAIL, _DEV_EDITION_PASSWORD, _DEV_EDITION_API_KEY]):
+    LOGGER.warning(
+        "Protegrity Developer Edition credentials not found in environment. "
+        "Please set DEV_EDITION_EMAIL, DEV_EDITION_PASSWORD, and DEV_EDITION_API_KEY. "
+        "Protection/redaction operations will fail without valid credentials."
+    )
 
 
 def _preview_text(text: str, limit: int = 160) -> str:
@@ -266,6 +280,14 @@ class PromptSanitizer:
     """Handles discovery + protect/redact operations via the SDK."""
 
     def __init__(self, config: SanitizationConfig) -> None:
+        # Validate credentials are available
+        if not all([_DEV_EDITION_EMAIL, _DEV_EDITION_PASSWORD, _DEV_EDITION_API_KEY]):
+            raise ValueError(
+                "Protegrity Developer Edition credentials are required. "
+                "Please ensure DEV_EDITION_EMAIL, DEV_EDITION_PASSWORD, and "
+                "DEV_EDITION_API_KEY environment variables are set."
+            )
+        
         self._config = config
         named_map = dict(DEFAULT_ENTITY_MAP)
         if config.named_entity_map:
