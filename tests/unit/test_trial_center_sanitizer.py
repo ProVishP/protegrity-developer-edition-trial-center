@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from unittest import mock
 
-from trial_center_pipeline import (
-    GuardrailConfig,
+from trial_center.core.pipeline import (
     GuardianPromptForge,
+    GuardrailConfig,
     PromptSanitizer,
     SanitizationConfig,
     SemanticGuardrailClient,
@@ -26,21 +26,21 @@ def _mock_guardrail_response(score: float = 0.7, outcome: str = "accepted"):
     }
 
 
-@mock.patch("trial_center_pipeline.protegrity.configure")
-@mock.patch("trial_center_pipeline.protegrity.discover", return_value={"PERSON": []})
+@mock.patch("trial_center.core.pipeline.protegrity.configure")
+@mock.patch("trial_center.core.pipeline.protegrity.discover", return_value={"PERSON": []})
 @mock.patch(
-    "trial_center_pipeline.protegrity.find_and_unprotect"
+    "trial_center.core.pipeline.protegrity.find_and_unprotect"
 )
 @mock.patch(
-    "trial_center_pipeline.protegrity.find_and_protect",
+    "trial_center.core.pipeline.protegrity.find_and_protect",
     side_effect=RuntimeError("protection unavailable"),
 )
 @mock.patch(
-    "trial_center_pipeline.protegrity.find_and_redact",
+    "trial_center.core.pipeline.protegrity.find_and_redact",
     return_value="[REDACTED]",
 )
 @mock.patch(
-    "trial_center_pipeline.requests.post",
+    "trial_center.core.pipeline.requests.post",
     return_value=mock.Mock(
         raise_for_status=mock.Mock(),
         json=mock.Mock(return_value=_mock_guardrail_response()),
@@ -72,14 +72,14 @@ def test_trial_center_sanitizer_reports_protection_failure(
     mock_unprotect.assert_not_called()
 
 
-@mock.patch("trial_center_pipeline.protegrity.configure")
-@mock.patch("trial_center_pipeline.protegrity.discover", return_value={})
+@mock.patch("trial_center.core.pipeline.protegrity.configure")
+@mock.patch("trial_center.core.pipeline.protegrity.discover", return_value={})
 @mock.patch(
-    "trial_center_pipeline.protegrity.find_and_redact",
+    "trial_center.core.pipeline.protegrity.find_and_redact",
     return_value="Sentence one. Sentence two.",
 )
 @mock.patch(
-    "trial_center_pipeline.requests.post",
+    "trial_center.core.pipeline.requests.post",
     return_value=mock.Mock(
         raise_for_status=mock.Mock(),
         json=mock.Mock(return_value=_mock_guardrail_response(score=0.2)),
@@ -103,14 +103,14 @@ def test_trial_center_pipeline_accepts_low_risk_prompt(
     assert report.sanitization.unprotected_prompt is None
 
 
-@mock.patch("trial_center_pipeline.protegrity.configure")
-@mock.patch("trial_center_pipeline.protegrity.discover", return_value={})
+@mock.patch("trial_center.core.pipeline.protegrity.configure")
+@mock.patch("trial_center.core.pipeline.protegrity.discover", return_value={})
 @mock.patch(
-    "trial_center_pipeline.protegrity.find_and_redact",
+    "trial_center.core.pipeline.protegrity.find_and_redact",
     return_value="Sanitized",
 )
 @mock.patch(
-    "trial_center_pipeline.requests.post",
+    "trial_center.core.pipeline.requests.post",
     return_value=mock.Mock(
         raise_for_status=mock.Mock(),
         json=mock.Mock(return_value=_mock_guardrail_response(score=0.49, outcome="approved")),
@@ -134,21 +134,21 @@ def test_trial_center_pipeline_preserves_service_outcome(
     assert report.sanitization.unprotected_prompt is None
 
 
-@mock.patch("trial_center_pipeline.protegrity.configure")
-@mock.patch("trial_center_pipeline.protegrity.discover", return_value={})
+@mock.patch("trial_center.core.pipeline.protegrity.configure")
+@mock.patch("trial_center.core.pipeline.protegrity.discover", return_value={})
 @mock.patch(
-    "trial_center_pipeline.protegrity.find_and_unprotect",
+    "trial_center.core.pipeline.protegrity.find_and_unprotect",
     return_value="Test prompt with data",  # Must match original prompt after normalization
 )
 @mock.patch(
-    "trial_center_pipeline.protegrity.find_and_protect",
+    "trial_center.core.pipeline.protegrity.find_and_protect",
     return_value="[TOKEN]abc123[/TOKEN] prompt with [TOKEN]def456[/TOKEN]",
 )
 @mock.patch(
-    "trial_center_pipeline.protegrity.find_and_redact"
+    "trial_center.core.pipeline.protegrity.find_and_redact"
 )
 @mock.patch(
-    "trial_center_pipeline.requests.post",
+    "trial_center.core.pipeline.requests.post",
     return_value=mock.Mock(
         raise_for_status=mock.Mock(),
         json=mock.Mock(return_value=_mock_guardrail_response(score=0.2)),
@@ -176,13 +176,13 @@ def test_trial_center_pipeline_handles_unprotect(
     mock_unprotect.assert_called_once_with("[TOKEN]abc123[/TOKEN] prompt with [TOKEN]def456[/TOKEN]")
 
 
-@mock.patch("trial_center_pipeline.protegrity.configure")
+@mock.patch("trial_center.core.pipeline.protegrity.configure")
 @mock.patch(
-    "trial_center_pipeline.protegrity.discover",
+    "trial_center.core.pipeline.protegrity.discover",
     return_value={},
 )
 @mock.patch(
-    "trial_center_pipeline.protegrity.find_and_redact",
+    "trial_center.core.pipeline.protegrity.find_and_redact",
     side_effect=["[PERSON] [PERSON]", "[PHONE]"],
 )
 def test_prompt_sanitizer_redacts_each_non_empty_line(
@@ -201,13 +201,13 @@ def test_prompt_sanitizer_redacts_each_non_empty_line(
     mock_redact.assert_any_call("Phone line")
 
 
-@mock.patch("trial_center_pipeline.protegrity.configure")
+@mock.patch("trial_center.core.pipeline.protegrity.configure")
 @mock.patch(
-    "trial_center_pipeline.protegrity.discover",
+    "trial_center.core.pipeline.protegrity.discover",
     return_value={"PERSON|COMPANY_NAME": [{"location": {"start_index": 0, "end_index": 4}}]},
 )
 @mock.patch(
-    "trial_center_pipeline.protegrity.find_and_redact",
+    "trial_center.core.pipeline.protegrity.find_and_redact",
     return_value="[PERSON]",
 )
 def test_prompt_sanitizer_extends_composite_entity_mapping(
@@ -230,7 +230,7 @@ def test_prompt_sanitizer_extends_composite_entity_mapping(
 
 
 @mock.patch(
-    "trial_center_pipeline.requests.post",
+    "trial_center.core.pipeline.requests.post",
     return_value=mock.Mock(
         raise_for_status=mock.Mock(),
         json=mock.Mock(return_value=_mock_guardrail_response(score=0.8, outcome="flagged")),
@@ -239,20 +239,20 @@ def test_prompt_sanitizer_extends_composite_entity_mapping(
 def test_semantic_guardrail_client_scores_prompt(mock_post):
     client = SemanticGuardrailClient(GuardrailConfig(rejection_threshold=0.7))
     result = client.score_prompt("Test prompt")
-    
+
     assert result.outcome == "flagged"
     assert result.score == 0.8
     assert result.explanation is not None
     mock_post.assert_called_once()
 
 
-@mock.patch("trial_center_pipeline.protegrity.configure")
+@mock.patch("trial_center.core.pipeline.protegrity.configure")
 @mock.patch(
-    "trial_center_pipeline.protegrity.discover",
+    "trial_center.core.pipeline.protegrity.discover",
     return_value={"EMAIL": [{"location": {"start_index": 0, "end_index": 15}}]},
 )
 @mock.patch(
-    "trial_center_pipeline.protegrity.find_and_protect",
+    "trial_center.core.pipeline.protegrity.find_and_protect",
     return_value="Test prompt",  # Simulate silent failure - no modification
 )
 def test_prompt_sanitizer_detects_silent_protection_failure(
@@ -262,7 +262,7 @@ def test_prompt_sanitizer_detects_silent_protection_failure(
 ):
     sanitizer = PromptSanitizer(SanitizationConfig(method="protect"))
     result = sanitizer.sanitize("Test prompt")
-    
+
     assert result.method_used == "protect"
     assert result.sanitize_error is not None
     assert "Protection did not modify the text" in result.sanitize_error

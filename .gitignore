@@ -56,3 +56,49 @@ output/
 # Temporary files
 *.tmp
 *.bak
+
+# ============================================================================
+# SECURITY: Environment files with credentials
+# ============================================================================
+# CRITICAL: Never commit files containing actual credentials!
+
+.env
+*.env
+!.env.example
+
+# Credential files
+secrets/
+credentials/
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+
+# AWS credentials
+.aws/credentials
+.aws/config
+
+# Backup files that might contain sensitive data
+backup/
+*.backup
+*.tar.gz
+*.zip
+
+# ============================================================================
+# Test artifacts
+# ============================================================================
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+coverage.xml
+*.cover
+
+# ============================================================================
+# Build artifacts
+# ============================================================================
+dist/
+build/
+*.egg-info/
+.github/

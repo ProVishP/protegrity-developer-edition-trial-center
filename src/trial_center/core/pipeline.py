@@ -8,18 +8,21 @@ before they reach downstream GenAI providers.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field, asdict
-from pathlib import Path
-import re
-from typing import Any, Callable, Dict, Optional
-
 import json
 import logging
 import os
+import re
+from collections.abc import Callable
+from dataclasses import asdict, dataclass, field
+from pathlib import Path
+from typing import Any
 
 import protegrity_developer_python as protegrity
 import requests
+from dotenv import load_dotenv
 
+# Load environment variables from .env file
+load_dotenv()
 
 LOGGER = logging.getLogger(__name__)
 
@@ -64,8 +67,8 @@ def _build_display_prompt(
     sanitized_prompt: str,
     method_used: str,
     original_prompt: str,
-    discovery_result: Dict[str, Any],
-    named_entity_map: Dict[str, str],
+    discovery_result: dict[str, Any],
+    named_entity_map: dict[str, str],
 ) -> str:
     """Return a human-friendly preview for protected payloads."""
 
@@ -75,7 +78,7 @@ def _build_display_prompt(
     return sanitized_prompt
 
 
-DEFAULT_ENTITY_MAP: Dict[str, str] = {
+DEFAULT_ENTITY_MAP: dict[str, str] = {
     "EMAIL_ADDRESS": "EMAIL",
     "EMAIL": "EMAIL",
     "PHONE_NUMBER": "PHONE",
@@ -120,8 +123,8 @@ class SanitizationConfig:
     fallback_method: str = "redact"
     classification_score_threshold: float = 0.6
     masking_char: str = "#"
-    named_entity_map: Optional[Dict[str, str]] = None
-    endpoint_url: Optional[str] = None
+    named_entity_map: dict[str, str] | None = None
+    endpoint_url: str | None = None
     enable_logging: bool = False
     log_level: str = "info"
 
@@ -135,8 +138,8 @@ class GuardrailResult:
 
     outcome: str
     score: float
-    explanation: Optional[str] = None
-    raw_response: Dict[str, Any] = field(default_factory=dict)
+    explanation: str | None = None
+    raw_response: dict[str, Any] = field(default_factory=dict)
 
     @property
     def is_rejected(self) -> bool:
@@ -149,13 +152,13 @@ class SanitizationResult:
 
     sanitized_prompt: str
     method_used: str  # "protect" or "redact"
-    discovery_entities: Dict[str, Any]
+    discovery_entities: dict[str, Any]
     original_prompt: str
-    raw_sanitized_prompt: Optional[str]  # non-display version (tokens)
-    unprotected_prompt: Optional[str]
-    unprotect_error: Optional[str]
-    display_prompt: Optional[str]
-    sanitize_error: Optional[str] = None
+    raw_sanitized_prompt: str | None  # non-display version (tokens)
+    unprotected_prompt: str | None
+    unprotect_error: str | None
+    display_prompt: str | None
+    sanitize_error: str | None = None
 
 
 @dataclass
@@ -180,14 +183,14 @@ class SemanticGuardrailClient:
     def __init__(self, config: GuardrailConfig) -> None:
         self._config = config
 
-    def score_prompt(self, prompt: str, domain: str = "customer-support", metadata: Optional[Dict[str, Any]] = None) -> GuardrailResult:
+    def score_prompt(self, prompt: str, domain: str = "customer-support", metadata: dict[str, Any] | None = None) -> GuardrailResult:
         """Submit a single-turn conversation for scoring.
-        
+
         Args:
             prompt: The user prompt to evaluate
             domain: Semantic domain processor (customer-support, financial, healthcare)
             metadata: Optional metadata to include in the request
-        
+
         Note: v1.1 API uses domain-specific processors for user messages.
         Available domains: customer-support, financial, healthcare.
         """
@@ -287,13 +290,13 @@ class PromptSanitizer:
                 "Please ensure DEV_EDITION_EMAIL, DEV_EDITION_PASSWORD, and "
                 "DEV_EDITION_API_KEY environment variables are set."
             )
-        
+
         self._config = config
         named_map = dict(DEFAULT_ENTITY_MAP)
         if config.named_entity_map:
             named_map.update(config.named_entity_map)
 
-        self._base_kwargs: Dict[str, Any] = {
+        self._base_kwargs: dict[str, Any] = {
             "endpoint_url": config.endpoint_url,
             "named_entity_map": named_map,
             "classification_score_threshold": config.classification_score_threshold,
@@ -318,19 +321,19 @@ class PromptSanitizer:
         method_used = self._primary_method
 
         sanitize_fn = self._select_method(method_used)
-        sanitized_prompt: Optional[str] = None
-        sanitize_error: Optional[str] = None
-        
+        sanitized_prompt: str | None = None
+        sanitize_error: str | None = None
+
         try:
             sanitized_prompt = _apply_linewise(prompt, sanitize_fn)
             LOGGER.info("Method '%s' succeeded.", method_used)
-            
+
             # For protection method, check if data was actually modified
             if method_used == "protect" and sanitized_prompt.strip() == prompt.strip():
                 sanitize_error = "Protection did not modify the text. This indicates protection failed for all entities (likely due to missing credentials or authentication failure)."
                 LOGGER.warning(sanitize_error)
                 sanitized_prompt = None
-                
+
         except Exception as error:  # noqa: BLE001
             sanitize_error = str(error)
             LOGGER.error(
@@ -354,15 +357,15 @@ class PromptSanitizer:
                 discovery_result,
                 self._named_entity_map,
             )
-        
-        unprotected_prompt: Optional[str] = None
-        unprotect_error: Optional[str] = None
+
+        unprotected_prompt: str | None = None
+        unprotect_error: str | None = None
         if method_used == "protect" and sanitized_prompt:
             unprotected_prompt, unprotect_error = self._attempt_unprotect(
                 sanitized_prompt,
                 prompt,
             )
-        
+
         return SanitizationResult(
             sanitized_prompt=sanitized_prompt or prompt,
             method_used=method_used,
@@ -383,11 +386,11 @@ class PromptSanitizer:
             return protegrity.find_and_redact
         raise ValueError(f"Unsupported sanitization method: {method}")
 
-    def _normalize_discovery_entities(self, discovery_result: Any) -> Dict[str, Any]:
+    def _normalize_discovery_entities(self, discovery_result: Any) -> dict[str, Any]:
         if not isinstance(discovery_result, dict):
             return {}
 
-        normalized: Dict[str, list[Any]] = {}
+        normalized: dict[str, list[Any]] = {}
         for raw_label, entries in discovery_result.items():
             if not isinstance(entries, list):
                 continue
@@ -433,13 +436,13 @@ class PromptSanitizer:
             kwargs["method"] = normalized
         protegrity.configure(**kwargs)
 
-    def _attempt_unprotect(self, text: str, original_prompt: str) -> tuple[Optional[str], Optional[str]]:
+    def _attempt_unprotect(self, text: str, original_prompt: str) -> tuple[str | None, str | None]:
         # First check if the "protected" text is identical to original (meaning protection failed)
         if text.strip() == original_prompt.strip():
             message = "Protection did not modify the text. This indicates protection failed for all entities (likely due to missing credentials or authentication failure)."
             LOGGER.warning(message)
             return None, message
-        
+
         try:
             restored = protegrity.find_and_unprotect(text)
         except Exception as error:  # noqa: BLE001
@@ -450,7 +453,7 @@ class PromptSanitizer:
         # Normalize whitespace for comparison
         normalized_original = " ".join(original_prompt.split())
         normalized_restored = " ".join(restored.split())
-        
+
         if normalized_restored != normalized_original:
             LOGGER.warning(
                 "Unprotect mismatch detected (expected len=%d, got len=%d).",
@@ -471,8 +474,8 @@ class GuardianPromptForge:
 
     def __init__(
         self,
-        guardrail_config: Optional[GuardrailConfig] = None,
-        sanitization_config: Optional[SanitizationConfig] = None,
+        guardrail_config: GuardrailConfig | None = None,
+        sanitization_config: SanitizationConfig | None = None,
     ) -> None:
         self.guardrail_client = SemanticGuardrailClient(guardrail_config or GuardrailConfig())
         self.sanitizer = PromptSanitizer(sanitization_config or SanitizationConfig())
@@ -480,9 +483,14 @@ class GuardianPromptForge:
     def process_prompt(
         self,
         prompt: str,
-        metadata: Optional[Dict[str, Any]] = None,
+        domain: str = "customer-support",
+        metadata: dict[str, Any] | None = None,
     ) -> ForgeReport:
-        guardrail_result = self.guardrail_client.score_prompt(prompt, metadata)
+        guardrail_result = self.guardrail_client.score_prompt(
+            prompt=prompt,
+            domain=domain,
+            metadata=metadata
+        )
         sanitization_result = self.sanitizer.sanitize(prompt)
 
         return ForgeReport(
@@ -501,7 +509,7 @@ def ensure_directory(path: Path) -> None:
     path.mkdir(parents=True, exist_ok=True)
 
 
-def write_report(report: ForgeReport, output_dir: Path, stem: str) -> Dict[str, Path]:
+def write_report(report: ForgeReport, output_dir: Path, stem: str) -> dict[str, Path]:
     ensure_directory(output_dir)
     sanitized_path = output_dir / f"{stem}_sanitized.txt"
     report_path = output_dir / f"{stem}_report.json"
@@ -515,8 +523,8 @@ def write_report(report: ForgeReport, output_dir: Path, stem: str) -> Dict[str, 
 def forge_from_file(
     prompt_path: Path,
     output_dir: Path,
-    metadata: Optional[Dict[str, Any]] = None,
-    forge: Optional[GuardianPromptForge] = None,
+    metadata: dict[str, Any] | None = None,
+    forge: GuardianPromptForge | None = None,
 ) -> ForgeReport:
     """Utility wrapper to process a prompt file and persist outputs."""
     forge = forge or GuardianPromptForge()

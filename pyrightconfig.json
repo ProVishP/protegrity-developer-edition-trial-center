@@ -1,16 +1,15 @@
 {
-  "venvPath": "..",
+  "venvPath": ".",
   "venv": ".venv",
-  "pythonVersion": "3.14",
+  "pythonVersion": "3.12",
   "pythonPlatform": "Darwin",
+  "include": ["src", "tests"],
+  "extraPaths": ["src"],
   "executionEnvironments": [
     {
-      "root": ".",
-      "pythonVersion": "3.14",
-      "pythonPlatform": "Darwin",
-      "extraPaths": [
-        "../.venv/lib/python3.14/site-packages"
-      ]
+      "root": "src",
+      "pythonVersion": "3.12",
+      "pythonPlatform": "Darwin"
     }
   ]
 }

@@ -1,326 +1,230 @@
 # Protegrity Developer Edition Trial Center
 
-An interactive Streamlit application demonstrating privacy-preserving GenAI workflows using [Protegrity Developer Edition v1.1.0](https://github.com/Protegrity-Developer-Edition/protegrity-developer-edition/tree/pre-release-1.1.0). This trial center showcases how to integrate data discovery, semantic guardrails, and data protection capabilities into AI/ML pipelines.
+An interactive Streamlit application demonstrating privacy-preserving GenAI
+workflows using [Protegrity Developer Edition v1.1.0](https://github.com/Protegrity-Developer-Edition/protegrity-developer-edition/tree/pre-release-1.1.0).
+The Trial Center is a thin UI that calls the Semantic Guardrail and Data
+Discovery / Classification services to showcase data discovery, semantic
+guardrails, protection, and redaction capabilities for AI/ML pipelines.
 
-<!-- ![Trial Center UI](assets/trial_center_ui.png) -->
+## Overview
 
-## 🎯 Overview
+This Trial Center provides a hands-on environment to explore Protegrity's
+privacy and security capabilities for GenAI applications:
 
-This Trial Center provides a hands-on environment to explore Protegrity's privacy and security capabilities for GenAI applications:
+- **Data Discovery** — automatically identify and classify sensitive data
+- **Semantic Guardrail** — validate prompts for policy compliance and security
+  risks using domain-specific processors (customer-support, financial,
+  healthcare)
+- **Protection & Unprotection** — apply reversible tokenization to sensitive
+  data
+- **Redaction** — irreversibly mask sensitive information
+- **Interactive UI** — Streamlit interface with domain selection and pipeline
+  mode configuration
 
-- **Data Discovery**: Automatically identify and classify sensitive data patterns
-- **Semantic Guardrail**: Validate prompts for policy compliance and security risks using domain-specific processors (customer-support, financial, healthcare)
-- **Protection & Unprotection**: Apply reversible encryption to sensitive data
-- **Redaction**: Irreversibly mask sensitive information
-- **Interactive UI**: User-friendly Streamlit interface with domain selection and pipeline mode configuration
+## Architecture
 
-## 🔧 Prerequisites
+```mermaid
+flowchart LR
+    User([Browser])
+    TC["Trial Center<br/>:8502"]
 
-### 1. Protegrity Developer Edition (Required)
+    subgraph Local["Local backends"]
+        SG["Semantic Guardrail<br/>:8581"]
+        CL["Discovery<br/>:8580"]
+    end
 
-This Trial Center requires **Protegrity Developer Edition** services to be running. Install and start them first:
+    Cloud["Protegrity Cloud<br/>api.developer-edition<br/>.protegrity.com"]
+
+    User -->|HTTPS| TC
+    TC -->|scan| SG
+    TC -->|find / classify| CL
+    TC -->|protect / unprotect /<br/>redact - HTTPS + API key| Cloud
+```
+
+This repository ships **only** the Trial Center UI container. The two local
+backends (Semantic Guardrail `:8581`, Discovery `:8580`) are an external
+prerequisite delivered by Protegrity Developer Edition. The Protegrity Cloud
+API performs the actual protect/unprotect/redact tokenization and is reached
+from inside the container over HTTPS using the `DEV_EDITION_*` credentials.
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full breakdown and
+[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) to get the local backends
+running.
+
+## Prerequisites
+
+| Requirement                                             | Version | Notes                              |
+| ------------------------------------------------------- | ------- | ---------------------------------- |
+| Docker                                                  | 20.10+  | Docker Desktop or Docker Engine    |
+| Docker Compose                                          | 2.0+    | Bundled with Docker Desktop        |
+| Protegrity Developer Edition account                    | —       | [Sign up](https://www.protegrity.com/developer-edition) |
+| **Semantic Guardrail** running on `localhost:8581`      | 1.1.0+  | From Protegrity Developer Edition  |
+| **Classification / Discovery** running on `localhost:8580` | 1.1.1+  | From Protegrity Developer Edition  |
+
+> **You do not need Python on the host.** The Trial Center runs entirely inside
+> its Docker container.
+
+#### Start the Backends First
 
 ```bash
-# Clone Protegrity Developer Edition
 git clone https://github.com/Protegrity-Developer-Edition/protegrity-developer-edition.git
 cd protegrity-developer-edition
-
-# Switch to pre-release-1.1.0 branch
 git checkout pre-release-1.1.0
-
-# Start the services
 docker compose up -d
-
-# Wait 1-2 minutes for services to initialize
 ```
 
-The following services must be accessible:
-- **Semantic Guardrail**: `http://localhost:8581` - Validates prompts for security and policy compliance
-- **Classification Service** (Data Discovery): `http://localhost:8580` - Identifies and classifies sensitive data
+Verify they're up:
 
-You can verify services are running:
 ```bash
-# Check Semantic Guardrail (v1.1)
-curl http://localhost:8581/pty/semantic-guardrail/v1.1/health
-
-# Check Classification Service (v1.1)
-curl http://localhost:8580/pty/data-discovery/v1.1/classify
-
-# Or check Docker containers
-docker ps | grep -E "semantic_guardrail|classification_service"
+curl -sf http://localhost:8581/ -o /dev/null && echo "Guardrail: OK"
+curl -sf http://localhost:8580/ -o /dev/null && echo "Discovery: OK"
 ```
 
-### 2. System Requirements
+#### Apple Silicon / arm64
 
-- **Docker Desktop** or Docker Engine
-- **Python 3.12.11+** (updated for v1.1.0 compatibility)
-- **macOS, Linux, or Windows** with WSL2
+The Protegrity backend images are currently published for `linux/amd64` only.
+On arm64 hosts they run via Rosetta / QEMU emulation — slower than native but
+fine for trial use.
 
-### 3. Protegrity Account (Optional)
-
-For **reversible protection** features, you need:
-- Protegrity Developer Edition account credentials
-- Set as environment variables (see Configuration section)
-
-**Note**: Discovery, Guardrail, and Redaction work without credentials.
-
-## 🚀 Quick Start
-
-### Option 1: Automated Launch (Recommended)
+## Quick Start
 
 ```bash
-# Clone this repository
-git clone https://github.com/YourUsername/protegrity-developer-edition-trial-center.git
+# 1. Clone this repository
+git clone https://github.com/ProVishP/protegrity-developer-edition-trial-center.git
 cd protegrity-developer-edition-trial-center
 
-# Run the launcher (handles everything automatically)
-./launch_trial_center.sh
+# 2. Configure credentials
+cp .env.example .env
+# Edit .env and fill in DEV_EDITION_EMAIL / PASSWORD / API_KEY
+
+# 3. Launch
+./scripts/deploy.sh        # macOS / Linux  (validates prereqs first)
+# or:
+docker compose up -d --build
 ```
 
-The launcher will:
-✅ Validate Docker and Protegrity services
-✅ Create and activate Python virtual environment
-✅ Check and install **ALL** missing dependencies (including protegrity-developer-python)
-✅ Verify all required packages are installed
-✅ Check service health
-✅ Launch Streamlit UI
+Open <http://localhost:8502>.
 
-**No manual package installation needed!** The launcher handles everything automatically.
+#### Windows
 
-### Option 2: Manual Setup
-
-```bash
-# 1. Create virtual environment
-python3 -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-
-# 2. Install ALL dependencies (including protegrity-developer-python)
-pip install -r requirements.txt
-
-# 3. Verify installation
-python -c "import protegrity_developer_python, streamlit, requests, pandas; print('✅ All packages installed')"
-
-# 4. Launch Streamlit
-streamlit run app.py
+```cmd
+scripts\deploy.bat
 ```
 
-**Note**: If you skip the virtual environment setup and install directly, ensure you have all packages from `requirements.txt` installed globally.
+#### What the deploy script does
 
-## ⚙️ Configuration
+1. Checks Docker, Compose, port 8502, `.env`, and **backend reachability**
+2. Shows a status table; exits if anything is a blocker
+3. Builds and starts the `trial-center` container
+4. Waits for the healthcheck to pass and prints the URL
 
-### Environment Variables
+## Configuration
 
-#### Required for Protection/Unprotection (Optional)
+Configuration is via `.env` in the project root (see [`.env.example`](.env.example)).
 
-To enable **Protection** and **Unprotection** features:
+| Variable                       | Required | Default                                    |
+| ------------------------------ | :------: | ------------------------------------------ |
+| `DEV_EDITION_EMAIL`            | yes      | —                                          |
+| `DEV_EDITION_PASSWORD`         | yes      | —                                          |
+| `DEV_EDITION_API_KEY`          | yes      | —                                          |
+| `SEMANTIC_GUARDRAIL_URL`       | no       | `http://host.docker.internal:8581`         |
+| `CLASSIFICATION_SERVICE_URL`   | no       | `http://host.docker.internal:8580`         |
+| `TRIAL_CENTER_PORT`            | no       | `8502`                                     |
+| `TRIAL_CENTER_VERSION`         | no       | `1.1.0`                                    |
+| `LOG_LEVEL`                    | no       | `INFO`                                     |
 
-```bash
-export DEV_EDITION_EMAIL="your-email@example.com"
-export DEV_EDITION_PASSWORD="your-password"
-export DEV_EDITION_API_KEY="your-api-key"
-```
+> **Without credentials**, Discovery / Guardrail / Redaction continue to work,
+> but Protection / Unprotection will return errors.
 
-#### Service Port Configuration (Optional)
+## Features
 
-Override default service ports if needed:
+| Mode                       | What it does                                                  |
+| -------------------------- | ------------------------------------------------------------- |
+| **Full Pipeline**          | Guardrail → Discover → Protect → Unprotect → Redact           |
+| **Semantic Guardrail**     | Score prompt risk without modifying content                   |
+| **Discover Sensitive Data**| Identify PII / PHI / PCI entities                             |
+| **Find, Protect & Unprotect** | Reversible tokenization round-trip                         |
+| **Find & Redact**          | Permanent masking (`***REDACTED***`)                          |
 
-```bash
-# Semantic Guardrail (default: 8581)
-export SEMANTIC_GUARDRAIL_PORT="8581"
+Domain processors: `customer-support`, `financial`, `healthcare`.
 
-# Classification Service (default: 8580)
-export CLASSIFICATION_SERVICE_PORT="8580"
-```
+Sample prompts are bundled in the sidebar and as files under
+[`tests/fixtures/`](tests/fixtures/).
 
-These are rarely needed unless you've customized the Protegrity Developer Edition Docker setup.
-
-**Without credentials:**
-- ✅ Data Discovery works
-- ✅ Semantic Guardrail works
-- ✅ Redaction works
-- ❌ Protection/Unprotection will show errors
-
-## 📖 Features
-
-### 1. **Domain-Specific Semantic Guardrails**
-Validate prompts against security policies using specialized domain processors:
-- **Customer Support**: Evaluates customer service interaction risks
-- **Financial**: Assesses banking and financial context risks
-- **Healthcare**: Analyzes medical and health-related scenarios
-- Prompt injection detection
-- Jailbreak attempt detection
-- Sensitive data exposure prevention
-- Context-aware policy validation
-
-### 2. **Discovery Only**
-Analyze text to identify sensitive data types (SSN, credit cards, emails, etc.) without modification.
-
-### 3. **Find & Protect**
-Discover sensitive data and apply reversible encryption (requires credentials).
-
-### 4. **Find & Unprotect**
-Decrypt previously protected data back to original form (requires credentials).
-
-### 5. **Find & Redact**
-Permanently mask sensitive data with `***REDACTED***` (no credentials needed).
-
-### 6. **Pipeline Modes**
-Choose execution path from sidebar:
-- **Full Pipeline**: All steps (guardrail, discovery, protection, redaction)
-- **Semantic Guardrail**: Risk evaluation only
-- **Discover Sensitive Data**: Entity identification only
-- **Find, Protect & Unprotect**: Reversible tokenization workflow
-- **Find & Redact**: Permanent masking workflow
-
-### 7. **Domain-Specific Sample Prompts**
-Quick-load examples demonstrating various scenarios for each domain:
-- Customer Support: Password resets, admin directory requests, data exports, off-topic chat
-- Financial: Balance reviews, password retrieval attempts, executive data dumps, IT support
-- Healthcare: Appointment scheduling, unauthorized chart access, employer disclosure, lifestyle advice
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 protegrity-developer-edition-trial-center/
-├── README.md                      # This file
-├── ARCHITECTURE.md                # Technical architecture docs
-├── requirements.txt               # Python dependencies
-├── .gitignore                     # Git ignore patterns
+├── README.md
+├── pyproject.toml
+├── requirements.txt
+├── pyrightconfig.json
+├── Dockerfile
+├── docker-compose.yml
+├── .env.example
+├── .gitignore
 │
-├── app.py                         # Main Streamlit application
-├── trial_center_pipeline.py       # Core pipeline logic
-├── run_trial_center.py            # CLI runner
-├── launch_trial_center.sh         # Automated launcher script
-├── pyrightconfig.json             # Python type checking config
+├── src/trial_center/
+│   ├── __init__.py
+│   ├── app.py                  # Streamlit UI
+│   ├── cli.py
+│   ├── core/pipeline.py        # Guardrail + sanitizer logic
+│   ├── api/health.py
+│   └── utils/validation.py
 │
-├── assets/                        # UI images and resources
-│   └── protegrity_logo.svg
+├── tests/
+│   ├── conftest.py
+│   ├── unit/
+│   └── fixtures/
 │
-├── samples/                       # Legacy sample prompts (now embedded in UI)
-│   ├── input_test.txt
-│   ├── sample_approved.txt
-│   ├── sample_data_leakage.txt
-│   ├── sample_malicious.txt
-│   └── sample_offtopic.txt
+├── scripts/
+│   ├── deploy.sh               # macOS / Linux launcher
+│   └── deploy.bat              # Windows launcher
 │
-└── tests/                         # Unit and integration tests
-    ├── test_trial_center_forge.py      # Tests for GuardianPromptForge
-    └── test_trial_center_sanitizer.py  # Tests for PromptSanitizer
+├── docs/
+│   ├── GETTING_STARTED.md
+│   └── ARCHITECTURE.md
 ```
 
-## 🔧 Troubleshooting
-
-### Package Installation Issues
-
-If you encounter `ModuleNotFoundError` for any package (e.g., `protegrity_developer_python`):
-
-**Best Solution - Use the launcher script:**
-```bash
-# The launcher automatically detects missing packages and installs them
-./launch_trial_center.sh
-```
-The launcher will show you exactly which packages are missing and install them automatically.
-
-**Manual troubleshooting:**
-```bash
-# Activate virtual environment
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-
-# Force reinstall all packages
-pip install --force-reinstall -r requirements.txt
-
-# Verify installation
-python -c "import protegrity_developer_python, streamlit, requests, pandas; print('✅ Success')"
-```
-
-### Common Issues
-
-**1. Docker Services Not Running**
-```bash
-# Check if Docker is running
-docker ps
-
-# Verify Protegrity services are running
-docker ps | grep -E "semantic_guardrail|classification_service"
-
-# Expected output should show:
-# - semantic_guardrail container on port 8581
-# - classification_service container on port 8580
-
-# If not running, start Protegrity Developer Edition services
-cd path/to/protegrity-developer-edition
-docker-compose up -d
-
-# Wait for services to initialize (1-2 minutes)
-sleep 120
-
-# Test services are responding (v1.1 endpoints)
-curl http://localhost:8581/pty/semantic-guardrail/v1.1/health  # Should return health status
-curl http://localhost:8580/pty/data-discovery/v1.1/classify  # Should return 415 (needs POST with data)
-```
-
-**Note:** The Trial Center UI includes a "Service Status" panel that shows real-time health of both services.
-
-**2. Port Already in Use**
-```bash
-# If port 8502 is busy, Streamlit will use the next available port
-# Check the terminal output for the actual URL
-```
-
-**3. Protection Operations Failing**
-- Ensure environment variables are set: `DEV_EDITION_EMAIL`, `DEV_EDITION_PASSWORD`, `DEV_EDITION_API_KEY`
-- Get credentials at [Get Developer Edition API Credentials](https://www.protegrity.com/developers/get-api-credentials)
-- Note: Discovery and Redaction work without credentials
-
-**4. Virtual Environment Issues**
-```bash
-# Remove and recreate virtual environment
-rm -rf .venv
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-## 🔗 Links
-
-- **Protegrity Developer Edition**: [GitHub Repository](https://github.com/Protegrity-Developer-Edition/protegrity-developer-edition)
-- **Get API Credentials**: [Developer Edition Credentials](https://www.protegrity.com/developers/get-api-credentials)
-- **Documentation**: [API Docs](https://developer-edition.protegrity.io/docs)
-
-## 🧪 Testing
+## Common Operations
 
 ```bash
-# Run tests
-pytest tests/
-
-# Run with coverage
-pytest --cov=. tests/
+docker compose ps                # Status
+docker compose logs -f           # Tail logs
+docker compose down              # Stop
+./scripts/deploy.sh --check      # Re-run prerequisite check
+./scripts/deploy.sh --clean      # Tear down
+TRIAL_CENTER_PORT=9000 ./scripts/deploy.sh   # Custom port
 ```
 
-## 🤝 Contributing
+## Troubleshooting
 
-This is a showcase project demonstrating Protegrity Developer Edition integration. Feel free to:
-- Fork and enhance
-- Submit issues
-- Share improvements
-- Use as a learning resource
+See [docs/GETTING_STARTED.md → Troubleshooting](docs/GETTING_STARTED.md#troubleshooting).
+The two most common issues:
 
-## 📝 License
+- **"Service Unavailable" in Steps 2–4** — backends aren't reachable from the
+  trial-center container. Verify with the curl checks above.
+- **Port 8502 in use** — re-run with `TRIAL_CENTER_PORT=8503 ./scripts/deploy.sh`.
 
-MIT License - See LICENSE file
+## Testing
 
-## 🙏 Acknowledgments
+```bash
+pytest -o addopts= -q              # Quick run (no coverage)
+pytest                             # Full run with coverage gate (≥70%)
+```
 
-Built using [Protegrity Developer Edition](https://github.com/Protegrity-Developer-Edition/protegrity-developer-edition) - a free, developer-friendly platform for exploring privacy-preserving technologies in AI/ML workflows.
+## Links
 
-Special thanks to the Protegrity team for providing powerful data protection capabilities through their Developer Edition.
+- Protegrity Developer Edition: <https://github.com/Protegrity-Developer-Edition/protegrity-developer-edition>
+- Get API credentials: <https://www.protegrity.com/developers/get-api-credentials>
+- Documentation: <https://developer-edition.protegrity.io/docs>
 
-## 📧 Support
+## License
 
-For issues related to:
-- **This Trial Center**: Open an issue in this repository
-- **Protegrity Developer Edition**: Visit the [official repo](https://github.com/Protegrity-Developer-Edition/protegrity-developer-edition)
+MIT — see [LICENSE](LICENSE).
 
----
+## Acknowledgments
 
-**Note**: This is an independent showcase project that uses Protegrity Developer Edition services. It is not officially maintained by Protegrity.
+Built on [Protegrity Developer Edition](https://github.com/Protegrity-Developer-Edition/protegrity-developer-edition).
+
+> This Trial Center is an independent showcase project that uses Protegrity
+> Developer Edition services. It is not officially maintained by Protegrity.

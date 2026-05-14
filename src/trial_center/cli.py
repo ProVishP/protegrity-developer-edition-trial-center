@@ -6,26 +6,19 @@ import argparse
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
-try:
-    from trial_center_pipeline import (
-    GuardrailConfig,
+from dotenv import load_dotenv
+
+from trial_center.core.pipeline import (
     GuardianPromptForge,
+    GuardrailConfig,
     SanitizationConfig,
     forge_from_file,
-    )
-except ImportError:  # Executed when run as a script
-    import sys
+)
 
-    PACKAGE_ROOT = Path(__file__).resolve().parent
-    sys.path.append(str(PACKAGE_ROOT.parent))
-    from trial_center_pipeline import (  # type: ignore  # noqa: E402
-    GuardrailConfig,
-    GuardianPromptForge,
-    SanitizationConfig,
-    forge_from_file,
-    )
+# Load environment variables
+load_dotenv()
 
 
 def _configure_logging(verbose: bool) -> None:
@@ -74,7 +67,7 @@ def build_forge(args: argparse.Namespace) -> GuardianPromptForge:
     )
 
 
-def parse_metadata(raw: Optional[str]) -> Optional[Dict[str, Any]]:
+def parse_metadata(raw: str | None) -> dict[str, Any] | None:
     if not raw:
         return None
     try:
