@@ -306,7 +306,7 @@ check_backend() {
         add_result "${label}" "reachable" "reachable @ ${url}" "pass"
     else
         add_result "${label}" "reachable" "unreachable @ ${url}" "fail" \
-            "Start the Protegrity Developer Edition backend (see docs/GETTING_STARTED.md → Prerequisites)."
+            "Start the Protegrity AI Developer Edition backend (see docs/GETTING_STARTED.md → Prerequisites)."
     fi
 }
 

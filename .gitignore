@@ -102,3 +102,6 @@ dist/
 build/
 *.egg-info/
 .github/
+
+# License lives at upstream repo root; do not duplicate inside trial-center/
+LICENSE

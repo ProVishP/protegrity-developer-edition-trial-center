@@ -1,7 +1,7 @@
-# Protegrity Developer Edition Trial Center
+# Protegrity AI Developer Edition Trial Center
 
 An interactive Streamlit application demonstrating privacy-preserving GenAI
-workflows using [Protegrity Developer Edition v1.1.0](https://github.com/Protegrity-Developer-Edition/protegrity-developer-edition/tree/pre-release-1.1.0).
+workflows using [Protegrity AI Developer Edition v1.2.0](https://github.com/Protegrity-AI-Developer-Edition/protegrity-ai-developer-edition/tree/pre-release-1.2.0).
 The Trial Center is a thin UI that calls the Semantic Guardrail and Data
 Discovery / Classification services to showcase data discovery, semantic
 guardrails, protection, and redaction capabilities for AI/ML pipelines.
@@ -43,7 +43,7 @@ flowchart LR
 
 This repository ships **only** the Trial Center UI container. The two local
 backends (Semantic Guardrail `:8581`, Discovery `:8580`) are an external
-prerequisite delivered by Protegrity Developer Edition. The Protegrity Cloud
+prerequisite delivered by Protegrity AI Developer Edition. The Protegrity Cloud
 API performs the actual protect/unprotect/redact tokenization and is reached
 from inside the container over HTTPS using the `DEV_EDITION_*` credentials.
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full breakdown and
@@ -56,9 +56,9 @@ running.
 | ------------------------------------------------------- | ------- | ---------------------------------- |
 | Docker                                                  | 20.10+  | Docker Desktop or Docker Engine    |
 | Docker Compose                                          | 2.0+    | Bundled with Docker Desktop        |
-| Protegrity Developer Edition account                    | —       | [Sign up](https://www.protegrity.com/developer-edition) |
-| **Semantic Guardrail** running on `localhost:8581`      | 1.1.0+  | From Protegrity Developer Edition  |
-| **Classification / Discovery** running on `localhost:8580` | 1.1.1+  | From Protegrity Developer Edition  |
+| Protegrity AI Developer Edition account                 | —       | [Sign up](https://www.protegrity.com/developer-edition) |
+| **Semantic Guardrail** running on `localhost:8581`      | 1.1.1+  | From Protegrity AI Developer Edition  |
+| **Classification / Discovery** running on `localhost:8580` | 2.0.0+  | From Protegrity AI Developer Edition  |
 
 > **You do not need Python on the host.** The Trial Center runs entirely inside
 > its Docker container.
@@ -66,9 +66,9 @@ running.
 #### Start the Backends First
 
 ```bash
-git clone https://github.com/Protegrity-Developer-Edition/protegrity-developer-edition.git
-cd protegrity-developer-edition
-git checkout pre-release-1.1.0
+git clone https://github.com/Protegrity-AI-Developer-Edition/protegrity-ai-developer-edition.git
+cd protegrity-ai-developer-edition
+git checkout pre-release-1.2.0
 docker compose up -d
 ```
 
@@ -88,9 +88,12 @@ fine for trial use.
 ## Quick Start
 
 ```bash
-# 1. Clone this repository
-git clone https://github.com/ProVishP/protegrity-developer-edition-trial-center.git
-cd protegrity-developer-edition-trial-center
+# 1. Clone the Protegrity AI Developer Edition repository and switch to the
+#    pre-release-1.2.0 branch, then enter the trial-center/ subfolder.
+git clone https://github.com/Protegrity-AI-Developer-Edition/protegrity-ai-developer-edition.git
+cd protegrity-ai-developer-edition
+git checkout pre-release-1.2.0
+cd trial-center
 
 # 2. Configure credentials
 cp .env.example .env
@@ -129,7 +132,7 @@ Configuration is via `.env` in the project root (see [`.env.example`](.env.examp
 | `SEMANTIC_GUARDRAIL_URL`       | no       | `http://host.docker.internal:8581`         |
 | `CLASSIFICATION_SERVICE_URL`   | no       | `http://host.docker.internal:8580`         |
 | `TRIAL_CENTER_PORT`            | no       | `8502`                                     |
-| `TRIAL_CENTER_VERSION`         | no       | `1.1.0`                                    |
+| `TRIAL_CENTER_VERSION`         | no       | `1.2.0`                                    |
 | `LOG_LEVEL`                    | no       | `INFO`                                     |
 
 > **Without credentials**, Discovery / Guardrail / Redaction continue to work,
@@ -214,17 +217,18 @@ pytest                             # Full run with coverage gate (≥70%)
 
 ## Links
 
-- Protegrity Developer Edition: <https://github.com/Protegrity-Developer-Edition/protegrity-developer-edition>
+- Protegrity AI Developer Edition: <https://github.com/Protegrity-AI-Developer-Edition/protegrity-ai-developer-edition>
 - Get API credentials: <https://www.protegrity.com/developers/get-api-credentials>
 - Documentation: <https://developer-edition.protegrity.io/docs>
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+Protegrity AI Developer Edition License — see [LICENSE](LICENSE). For non-production
+evaluation, development, testing, and education only.
 
 ## Acknowledgments
 
-Built on [Protegrity Developer Edition](https://github.com/Protegrity-Developer-Edition/protegrity-developer-edition).
+Built on [Protegrity AI Developer Edition](https://github.com/Protegrity-AI-Developer-Edition/protegrity-ai-developer-edition).
 
 > This Trial Center is an independent showcase project that uses Protegrity
-> Developer Edition services. It is not officially maintained by Protegrity.
+> AI Developer Edition services. It is not officially maintained by Protegrity.

@@ -18,7 +18,7 @@ def check_health() -> dict[str, Any]:
     """
     return {
         "status": "healthy",
-        "version": "1.1.0",
+        "version": "1.2.0",
         "services": {
             "guardrail": check_guardrail_service(),
             "discovery": check_discovery_service(),

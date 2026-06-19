@@ -22,20 +22,20 @@ Trial Center on your local machine.
 
 ## Prerequisites
 
-The Trial Center is **only the UI**. It expects the Protegrity Developer
+The Trial Center is **only the UI**. It expects the Protegrity AI Developer
 Edition backend services to be installed and running on your machine first.
 
 | Requirement | Minimum Version | How to Install |
 |-------------|-----------------|----------------|
 | Docker | 20.10+ | [docs.docker.com/get-docker](https://docs.docker.com/get-docker/) |
 | Docker Compose | 2.0+ | Included with Docker Desktop |
-| Protegrity Developer Edition account | — | [protegrity.com/developer-edition](https://www.protegrity.com/developer-edition) |
-| **Semantic Guardrail** service running on `localhost:8581` | 1.1.0+ | Provided by Protegrity Developer Edition install |
-| **Classification / Data Discovery** service running on `localhost:8580` | 1.1.1+ | Provided by Protegrity Developer Edition install |
+| Protegrity AI Developer Edition account | — | [protegrity.com/developer-edition](https://www.protegrity.com/developer-edition) |
+| **Semantic Guardrail** service running on `localhost:8581` | 1.1.1+ | Provided by Protegrity AI Developer Edition install |
+| **Classification / Data Discovery** service running on `localhost:8580` | 2.0.0+ | Provided by Protegrity AI Developer Edition install |
 
 > **Important**: The Semantic Guardrail and Classification services are **not**
 > started by this repository's `docker compose`. Install and start them via
-> the official Protegrity Developer Edition deployment first, then start the
+> the official Protegrity AI Developer Edition deployment first, then start the
 > Trial Center UI.
 
 > **Note**: You do **not** need Python installed. The Trial Center UI runs
@@ -60,7 +60,7 @@ docker compose version  # Should show >= 2.0
 
 #### Platform Note (Apple Silicon / arm64)
 
-The Protegrity Developer Edition backend images are currently published for
+The Protegrity AI Developer Edition backend images are currently published for
 `linux/amd64` only. On Apple Silicon and other arm64 hosts they run via
 Rosetta / QEMU emulation. This is fine for trial / exploration use but
 slower than native; multi-arch images are tracked upstream by Protegrity.
@@ -70,7 +70,7 @@ slower than native; multi-arch images are tracked upstream by Protegrity.
 ## Step 1 — Get Your Credentials
 
 1. Go to [protegrity.com/developer-edition](https://www.protegrity.com/developer-edition)
-2. Sign up or log in to your Protegrity Developer Edition account
+2. Sign up or log in to your Protegrity AI Developer Edition account
 3. Note down three values:
    - **Email** — the email you registered with
    - **Password** — your account password
@@ -80,9 +80,14 @@ slower than native; multi-arch images are tracked upstream by Protegrity.
 
 ## Step 2 — Clone the Repository
 
+The Trial Center ships as the `trial-center/` subfolder of the Protegrity AI
+Developer Edition repository.
+
 ```bash
-git clone https://github.com/ProVishP/protegrity-developer-edition-trial-center.git
-cd protegrity-developer-edition-trial-center
+git clone https://github.com/Protegrity-AI-Developer-Edition/protegrity-ai-developer-edition.git
+cd protegrity-ai-developer-edition
+git checkout pre-release-1.2.0
+cd trial-center
 ```
 
 ---

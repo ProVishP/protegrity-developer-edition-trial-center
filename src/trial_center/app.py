@@ -1,4 +1,4 @@
-"""Streamlit UI for the Dev Edition Trial Center."""
+"""Streamlit UI for the AI Developer Edition Trial Center."""
 
 from __future__ import annotations
 
@@ -127,7 +127,7 @@ st.markdown("""
                           gap: 0.5rem;">
                     <span>Documentation</span>
                 </a>
-                <a href="https://github.com/Protegrity-Developer-Edition/protegrity-developer-edition"
+                <a href="https://github.com/Protegrity-AI-Developer-Edition/protegrity-ai-developer-edition"
                    target="_blank"
                    style="background: rgba(255, 255, 255, 0.1);
                           padding: 0.5rem 1.125rem;
@@ -896,11 +896,12 @@ CLASSIFICATION_SERVICE_URL = os.getenv(
     "CLASSIFICATION_SERVICE_URL", f"http://localhost:{CLASSIFICATION_SERVICE_PORT}"
 )
 
-# API endpoint URLs with v1.1 (updated from v1.0)
+# API endpoint URLs (Semantic Guardrail v1.1, Data Discovery v2)
 DEFAULT_GUARDRAIL_URL = (
     f"{SEMANTIC_GUARDRAIL_URL}/pty/semantic-guardrail/v1.1/conversations/messages/scan"
 )
-DEFAULT_DISCOVERY_ENDPOINT = f"{CLASSIFICATION_SERVICE_URL}/pty/data-discovery/v1.1/classify"
+DEFAULT_DISCOVERY_ENDPOINT = f"{CLASSIFICATION_SERVICE_URL}/pty/data-discovery/v2/classify/text"
+DEFAULT_TRANSFORM_URL = f"{CLASSIFICATION_SERVICE_URL}/pty/data-discovery/v2/transform/label"
 
 # Service Health Status removed - end users don't need to see this
 
@@ -989,6 +990,7 @@ def _build_services() -> tuple[
                 method="protect",
                 fallback_method="redact",
                 endpoint_url=DEFAULT_DISCOVERY_ENDPOINT,
+                transform_url=DEFAULT_TRANSFORM_URL,
                 enable_logging=SDK_LOGGING_ENABLED,
                 log_level=DEFAULT_SDK_LOG_LEVEL,
             )
@@ -998,6 +1000,7 @@ def _build_services() -> tuple[
                 method="redact",
                 fallback_method="redact",
                 endpoint_url=DEFAULT_DISCOVERY_ENDPOINT,
+                transform_url=DEFAULT_TRANSFORM_URL,
                 enable_logging=SDK_LOGGING_ENABLED,
                 log_level=DEFAULT_SDK_LOG_LEVEL,
             )

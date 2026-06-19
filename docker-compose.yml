@@ -28,7 +28,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: protegrity/trial-center:${TRIAL_CENTER_VERSION:-1.1.0}
+    image: protegrity/trial-center:${TRIAL_CENTER_VERSION:-1.2.0}
     container_name: trial-center
     ports:
       - "${TRIAL_CENTER_PORT:-8502}:8502"

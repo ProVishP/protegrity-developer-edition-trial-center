@@ -1,4 +1,4 @@
-"""CLI entry point for the Dev Edition Trial Center."""
+"""CLI entry point for the AI Developer Edition Trial Center."""
 
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ def _configure_logging(verbose: bool) -> None:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run the Dev Edition Trial Center pipeline.")
+    parser = argparse.ArgumentParser(description="Run the AI Developer Edition Trial Center pipeline.")
     parser.add_argument("prompt", help="Path to file containing the prompt text.")
     parser.add_argument(
         "--output-dir",

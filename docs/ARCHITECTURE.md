@@ -11,7 +11,7 @@ protection, and redaction services cooperate to secure GenAI prompts.
 
 The Trial Center ships **only the UI container**. The Semantic Guardrail and
 Classification / Discovery backend services are an external prerequisite,
-delivered by [Protegrity Developer Edition](https://github.com/Protegrity-Developer-Edition/protegrity-developer-edition)
+delivered by [Protegrity AI Developer Edition](https://github.com/Protegrity-AI-Developer-Edition/protegrity-ai-developer-edition)
 and expected to be running on the host before the Trial Center is started.
 
 ---
@@ -55,9 +55,11 @@ Three external dependencies provide the data plane:
 - **Semantic Guardrail (`:8581`, local)** — risk scoring of incoming prompts
   (`POST /pty/semantic-guardrail/v1.1/conversations/messages/scan`).
 - **Classification / Discovery (`:8580`, local)** — entity detection
-  (`POST /pty/data-discovery/v1.1/classify`). Called by the SDK as the *find*
-  step of `find_and_protect`, `find_and_unprotect`, and `find_and_redact`.
-- **Protegrity Developer Edition Cloud
+  (`POST /pty/data-discovery/v2/classify/text`) and label-based redaction
+  (`POST /pty/data-discovery/v2/transform/label`). Called by the SDK as the
+  *find* step of `find_and_protect`, `find_and_unprotect`, and
+  `find_and_redact`.
+- **Protegrity AI Developer Edition Cloud
   (`https://api.developer-edition.protegrity.com`)** — performs the actual
   tokenization (protect), detokenization (unprotect), and irreversible
   masking (redact). Authenticated by `DEV_EDITION_EMAIL`,
@@ -76,13 +78,13 @@ reached over the public internet from inside the container.
 
 | Service | Image | Port | Owner |
 |---------|-------|------|-------|
-| `trial-center` | `protegrity/trial-center:1.1.0` (built from `Dockerfile`) | 8502 | This repository |
-| Semantic Guardrail | `ghcr.io/protegrity-developer-edition/semantic-guardrail` | 8581 | Protegrity Developer Edition (external) |
-| Classification / Discovery | `ghcr.io/protegrity-developer-edition/classification_service` | 8580 | Protegrity Developer Edition (external) |
+| `trial-center` | `protegrity/trial-center:1.2.0` (built from `Dockerfile`) | 8502 | This repository |
+| Semantic Guardrail | `ghcr.io/protegrity-ai-developer-edition/semantic-guardrail` | 8581 | Protegrity AI Developer Edition (external) |
+| Classification / Discovery | `ghcr.io/protegrity-ai-developer-edition/classification-service` | 8580 | Protegrity AI Developer Edition (external) |
 
 Only the `trial-center` service is defined in [`docker-compose.yml`](../docker-compose.yml).
 The two backend services must be running independently (typically via the
-Protegrity Developer Edition compose stack) before the Trial Center is started.
+Protegrity AI Developer Edition compose stack) before the Trial Center is started.
 
 #### Service Discovery
 
@@ -189,7 +191,7 @@ User Prompt
 ```text
 protegrity-developer-edition-trial-center/
 ├── docker-compose.yml       # trial-center service definition (single service)
-├── Dockerfile               # Trial Center container (python:3.12-slim)
+├── Dockerfile               # Trial Center container (python:3.11-slim)
 ├── .env.example             # Template for credentials and overrides
 ├── requirements.txt         # Python runtime dependencies
 ├── pyproject.toml           # Build config, [project.optional-dependencies] dev
@@ -218,7 +220,7 @@ layer — environment variables are the single source of truth.
 
 | Variable | Purpose |
 |----------|---------|
-| `DEV_EDITION_EMAIL` | Protegrity Developer Edition account email |
+| `DEV_EDITION_EMAIL` | Protegrity AI Developer Edition account email |
 | `DEV_EDITION_PASSWORD` | Account password |
 | `DEV_EDITION_API_KEY` | API key for SDK operations |
 
@@ -227,7 +229,7 @@ layer — environment variables are the single source of truth.
 | Variable | Default | Purpose |
 |----------|---------|---------|
 | `TRIAL_CENTER_PORT` | 8502 | Published UI port |
-| `TRIAL_CENTER_VERSION` | 1.1.0 | Image tag built by `docker compose build` |
+| `TRIAL_CENTER_VERSION` | 1.2.0 | Image tag built by `docker compose build` |
 | `SEMANTIC_GUARDRAIL_URL` | `http://host.docker.internal:8581` | Backend URL |
 | `CLASSIFICATION_SERVICE_URL` | `http://host.docker.internal:8580` | Backend URL |
 | `LOG_LEVEL` | INFO | Logging verbosity |
@@ -275,7 +277,7 @@ layer — environment variables are the single source of truth.
 
 #### Container Security
 
-- Base image: `python:3.12-slim` (minimal attack surface)
+- Base image: `python:3.11-slim` (minimal attack surface)
 - Healthcheck uses `python -c urllib.request` (no `curl` install required)
 - Backends are addressed by hostname (`host.docker.internal`), not by raw IP,
   so the topology stays portable between Docker Desktop and Linux Docker Engine

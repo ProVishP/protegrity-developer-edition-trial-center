@@ -1,7 +1,7 @@
-"""Pipeline utilities for the Dev Edition Trial Center.
+"""Pipeline utilities for the AI Developer Edition Trial Center.
 
 This module orchestrates Semantic Guardrail checks, Data Discovery insights,
-and protection/redaction workflows provided by the Protegrity Developer Edition
+and protection/redaction workflows provided by the Protegrity AI Developer Edition
 SDK. It can be consumed from CLI tools or interactive apps to sanitize prompts
 before they reach downstream GenAI providers.
 """
@@ -20,6 +20,7 @@ from typing import Any
 import protegrity_developer_python as protegrity
 import requests
 from dotenv import load_dotenv
+from protegrity_developer_python.utils.constants import get_config as _get_sdk_config
 
 # Load environment variables from .env file
 load_dotenv()
@@ -34,7 +35,7 @@ _DEV_EDITION_API_KEY = os.getenv("DEV_EDITION_API_KEY")
 
 if not all([_DEV_EDITION_EMAIL, _DEV_EDITION_PASSWORD, _DEV_EDITION_API_KEY]):
     LOGGER.warning(
-        "Protegrity Developer Edition credentials not found in environment. "
+        "Protegrity AI Developer Edition credentials not found in environment. "
         "Please set DEV_EDITION_EMAIL, DEV_EDITION_PASSWORD, and DEV_EDITION_API_KEY. "
         "Protection/redaction operations will fail without valid credentials."
     )
@@ -90,6 +91,7 @@ DEFAULT_ENTITY_MAP: dict[str, str] = {
     "BANK_ACCOUNT_NUMBER": "ACCOUNT_NUMBER",
     "CREDIT_CARD_NUMBER": "PAYMENT_CARD",
     "SOCIAL_SECURITY_NUMBER": "SSN",
+    "SOCIAL_SECURITY_ID": "SSN",
     "NATIONAL_ID_NUMBER": "NATIONAL_ID",
     "PASSPORT": "PASSPORT",
     "INSURANCE_POLICY_ID": "INSURANCE_POLICY_ID",
@@ -125,6 +127,7 @@ class SanitizationConfig:
     masking_char: str = "#"
     named_entity_map: dict[str, str] | None = None
     endpoint_url: str | None = None
+    transform_url: str | None = None
     enable_logging: bool = False
     log_level: str = "info"
 
@@ -286,7 +289,7 @@ class PromptSanitizer:
         # Validate credentials are available
         if not all([_DEV_EDITION_EMAIL, _DEV_EDITION_PASSWORD, _DEV_EDITION_API_KEY]):
             raise ValueError(
-                "Protegrity Developer Edition credentials are required. "
+                "Protegrity AI Developer Edition credentials are required. "
                 "Please ensure DEV_EDITION_EMAIL, DEV_EDITION_PASSWORD, and "
                 "DEV_EDITION_API_KEY environment variables are set."
             )
@@ -435,6 +438,10 @@ class PromptSanitizer:
         elif normalized in {"redact", "mask"}:
             kwargs["method"] = normalized
         protegrity.configure(**kwargs)
+        # SDK 1.2.0 splits discovery (endpoint_url) and transform (transform_url);
+        # configure() only sets the former, so override the latter directly.
+        if self._config.transform_url:
+            _get_sdk_config("data-discovery")["transform_url"] = self._config.transform_url
 
     def _attempt_unprotect(self, text: str, original_prompt: str) -> tuple[str | None, str | None]:
         # First check if the "protected" text is identical to original (meaning protection failed)
